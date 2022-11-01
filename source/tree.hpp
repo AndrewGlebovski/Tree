@@ -46,3 +46,11 @@ Node *create_node(int value, Node *left = nullptr, Node *right = nullptr);
  * \return Non zero value means error
 */
 int tree_destructor(Tree *tree);
+
+
+/**
+ * \brief Prints tree
+ * \param [in] node Tree to print
+ * \param [out] stream Output stream
+*/
+void print_tree(Tree *tree, FILE *stream = stdout);

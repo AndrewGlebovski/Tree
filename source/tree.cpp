@@ -20,6 +20,14 @@ do {                                                                         \
 void free_node(Node *node);
 
 
+/**
+ * \brief Prints node and its children
+ * \param [in]  node   Node to print
+ * \param [out] stream Output stream
+*/
+void print_node(Node *node, FILE *stream);
+
+
 
 
 int tree_constructor(Tree *tree, Node *root) {
@@ -81,4 +89,26 @@ void free_node(Node *node) {
     }
 
     free(node);
+}
+
+
+void print_tree(Tree *tree, FILE *stream) {
+    print_node(tree -> root, stream);
+
+    fputc('\n', stream);
+}
+
+
+void print_node(Node *node, FILE *stream) {
+    if (!node) return;
+
+    fprintf(stream, "( ");
+
+    if (node -> left) print_node(node -> left, stream);
+
+    fprintf(stream, "%i ", node -> data);
+
+    if (node -> left) print_node(node -> right, stream);
+
+    fprintf(stream, ") ");
 }
