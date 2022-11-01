@@ -50,7 +50,17 @@ int tree_destructor(Tree *tree);
 
 /**
  * \brief Prints tree
- * \param [in] node Tree to print
+ * \param [in]  node Tree to print
  * \param [out] stream Output stream
 */
 void print_tree(Tree *tree, FILE *stream = stdout);
+
+
+/**
+ * \brief Find node in tree by its value
+ * \param [in]  tree  Search will be in this tree
+ * \param [in]  value Searching for this value
+ * \param [out] path  Contains path to node (path ends with nullptr)
+ * \return Actual pointer if node was found or nullptr
+*/
+Node *find_in_tree(Tree *tree, int value, Node *path[] = nullptr);
