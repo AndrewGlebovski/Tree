@@ -64,3 +64,11 @@ void print_tree(Tree *tree, FILE *stream = stdout);
  * \return Actual pointer if node was found or nullptr
 */
 Node *find_in_tree(Tree *tree, int value, Node *path[] = nullptr);
+
+
+/**
+ * Checks for errors in tree
+ * \param [in] tree Check out this tree
+ * \return Non zero value means error
+*/
+int tree_verifier(Tree *tree);  // IMPLEMENTATION REQUIRED
