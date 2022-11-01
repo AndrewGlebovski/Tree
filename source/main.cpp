@@ -24,6 +24,8 @@ int main() {
     
     putchar('\n');
 
+    write_tree(&tree, "tree.txt");
+
     print_tree(&tree);
 
     tree_destructor(&tree);
