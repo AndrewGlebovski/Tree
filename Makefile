@@ -15,7 +15,7 @@ all: run
 
 
 # Завершает сборку
-run: $(addprefix $(BIN_DIR)/, main.o tree.o)
+run: $(addprefix $(BIN_DIR)/, main.o tree.o io.o)
 	$(COMPILER) $^ -o run.exe
 
 
@@ -26,4 +26,9 @@ $(BIN_DIR)/main.o: $(addprefix $(SRC_DIR)/, main.cpp tree.hpp)
 
 # Предварительная сборка tree.cpp
 $(BIN_DIR)/tree.o: $(addprefix $(SRC_DIR)/, tree.cpp tree.hpp)
+	$(COMPILER) $(FLAGS) -c $< -o $@
+
+
+# Предварительная сборка io.cpp
+$(BIN_DIR)/io.o: $(addprefix $(SRC_DIR)/, io.cpp io.hpp tree.hpp)
 	$(COMPILER) $(FLAGS) -c $< -o $@
