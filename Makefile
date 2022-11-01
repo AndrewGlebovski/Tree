@@ -10,12 +10,15 @@ BIN_DIR=binary
 # Папка с исходниками и заголовками
 SRC_DIR=source
 
+# Папка с исходниками и заголовками библиотек
+LIB_DIR=$(SRC_DIR)/lib
+
 
 all: run
 
 
 # Завершает сборку
-run: $(addprefix $(BIN_DIR)/, main.o tree.o io.o)
+run: $(addprefix $(BIN_DIR)/, main.o tree.o io.o text.o)
 	$(COMPILER) $^ -o run.exe
 
 
@@ -30,5 +33,10 @@ $(BIN_DIR)/tree.o: $(addprefix $(SRC_DIR)/, tree.cpp tree.hpp)
 
 
 # Предварительная сборка io.cpp
-$(BIN_DIR)/io.o: $(addprefix $(SRC_DIR)/, io.cpp io.hpp tree.hpp)
+$(BIN_DIR)/io.o: $(addprefix $(SRC_DIR)/, io.cpp io.hpp tree.hpp lib/text.hpp)
+	$(COMPILER) $(FLAGS) -c $< -o $@
+
+
+# Предварительная сборка библиотек
+$(BIN_DIR)/%.o: $(addprefix $(LIB_DIR)/, %.cpp %.hpp)
 	$(COMPILER) $(FLAGS) -c $< -o $@

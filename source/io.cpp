@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "lib/text.hpp"
 #include "tree.hpp"
 #include "io.hpp"
 
