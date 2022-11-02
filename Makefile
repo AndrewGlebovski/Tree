@@ -38,7 +38,7 @@ $(BIN_DIR)/io.o: $(addprefix $(SRC_DIR)/, io.cpp io.hpp tree.hpp lib/text.hpp)
 
 
 # Предварительная сборка log.cpp
-$(BIN_DIR)/log.o: $(addprefix $(SRC_DIR)/, log.cpp tree.hpp)
+$(BIN_DIR)/log.o: $(addprefix $(SRC_DIR)/, log.cpp log.hpp tree.hpp)
 	$(COMPILER) $(FLAGS) -c $< -o $@
 
 
