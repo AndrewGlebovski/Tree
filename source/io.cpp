@@ -1,4 +1,8 @@
 #include <stdio.h>
+#include <io.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <string.h>
 #include "lib/text.hpp"
 #include "tree.hpp"
 #include "io.hpp"
@@ -13,6 +17,68 @@
 */
 void write_node(Node *node, FILE *stream, int shift);
 
+
+/**
+ * \brief Creates node and reads its data from buffer 
+ * \param [in] buffer Buffer to read from
+ * \return Pointer to new node
+*/
+Node *read_node(const char *buffer);
+
+
+
+
+int read_tree(Tree *tree, const char *filepath) {
+    // ADD ASSERT HERE
+
+    int input = open(filepath, O_RDONLY);
+
+    // ADD ASSERT HERE
+
+    char *buffer = nullptr;
+
+    read_in_buffer(input, &buffer, get_file_size(input));
+
+    replace_in_buffer(buffer, '\n', ' ');
+
+    tree -> root = read_node(buffer);
+
+    free(buffer);
+
+    return 0;
+}
+
+
+Node *read_node(const char *buffer) {
+    static int offset = 0;
+
+    String token = get_token(buffer + offset, "{\"}", ""); // {
+
+    Node *node = create_node(0);
+
+    token = get_token(token.str + token.len, "{\"}", ""); // "
+
+    token = get_token(token.str + token.len, "{\"}", "");
+
+    if (str_to_int(&token, &node -> data))
+        node = nullptr;
+
+    token = get_token(token.str + token.len, "{\"}", ""); // "
+
+    String bracket = get_token(token.str + token.len, "{\"}", "");
+
+    offset = (int)(bracket.str - buffer) + bracket.len;
+
+    if (strncmp(bracket.str, "{", bracket.len) == 0) {
+        offset -= bracket.len;
+        
+        node -> left = read_node(buffer);
+        
+        node -> right = read_node(buffer);
+    }
+
+    return node;
+}
 
 
 

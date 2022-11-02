@@ -84,7 +84,7 @@ int free_text(Text *text);
  * \warning Token is not always end with \0, so you need to rely on String length field
  * \return Token pointer and size
 */
-String get_token(char *origin, const char *solo, const char *extra);
+String get_token(const char *origin, const char *solo, const char *extra);
 
 
 /**

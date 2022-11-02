@@ -104,11 +104,11 @@ int free_text(Text *text) {
 int str_to_int(String *str, int *value) {
     char *end = nullptr;
     *value = (int)(strtod(str -> str, &end));
-    return (end == str -> str + str -> len);
+    return (end != str -> str + str -> len);
 }
 
 
-String get_token(char *origin, const char *solo, const char *extra) {
+String get_token(const char *origin, const char *solo, const char *extra) {
     String token = {origin, 1};
 
     while (isspace(*token.str)) token.str++;
