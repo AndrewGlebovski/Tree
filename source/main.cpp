@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "tree.hpp"
 #include "io.hpp"
+#include "log.hpp"
 
 
 int main() {
