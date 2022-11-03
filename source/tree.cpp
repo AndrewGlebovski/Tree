@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "tree.hpp"
 
 
@@ -34,7 +35,7 @@ void print_node(Node *node, FILE *stream);
  * \param [in]  value Searching for this value
  * \return Actual pointer if node was found or nullptr
 */
-Node *fast_search(Node *node, int value);
+Node *fast_search(Node *node, const char *value);
 
 
 /**
@@ -44,7 +45,7 @@ Node *fast_search(Node *node, int value);
  * \param [out] path  Contains path to node (path ends with nullptr)
  * \return Actual pointer if node was found or nullptr
 */
-Node *full_search(Node *node, int value, Node *path[]);
+Node *full_search(Node *node, const char *value, Node *path[]);
 
 
 
@@ -57,7 +58,7 @@ int tree_constructor(Tree *tree, Node *root) {
     }
 
     else {
-        tree -> root = create_node(0);
+        tree -> root = create_node(nullptr);
         
         ASSERT(tree -> root, "Failed to allocate tree root!", ALLOC_FAIL);
     }
@@ -68,7 +69,7 @@ int tree_constructor(Tree *tree, Node *root) {
 }
 
 
-Node *create_node(int value, Node *left, Node *right) {
+Node *create_node(const char *value, Node *left, Node *right) {
     Node *node = (Node *) calloc(1, sizeof(Node));
 
     if (node) {
@@ -127,7 +128,7 @@ void print_node(Node *node, FILE *stream) {
 
     if (node -> left) print_node(node -> left, stream);
 
-    fprintf(stream, "%i ", node -> data);
+    fprintf(stream, "%s ", node -> data);
 
     if (node -> left) print_node(node -> right, stream);
 
@@ -135,7 +136,7 @@ void print_node(Node *node, FILE *stream) {
 }
 
 
-Node *find_in_tree(Tree *tree, int value, Node *path[]) {
+Node *find_in_tree(Tree *tree, const char *value, Node *path[]) {
     // ADD ASSERT HERE
 
     if (path)
@@ -145,7 +146,7 @@ Node *find_in_tree(Tree *tree, int value, Node *path[]) {
 }
 
 
-Node *fast_search(Node *node, int value) {
+Node *fast_search(Node *node, const char *value) {
     if (!node) return nullptr;
 
     if (node -> data == value) return node;
@@ -166,12 +167,12 @@ Node *fast_search(Node *node, int value) {
 }
 
 
-Node *full_search(Node *node, int value, Node *path[]) {
+Node *full_search(Node *node, const char *value, Node *path[]) {
     if (!node) return nullptr;
 
     *path = node;
 
-    if (node -> data == value) return node;
+    if (strcmp(node -> data, value) == 0) return node;
 
     Node *result = nullptr;
 

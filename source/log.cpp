@@ -32,7 +32,7 @@ int generate_file(Tree *tree, FILE *file) {
 
 
 void write_record(FILE *file, Node *node) {
-    fprintf(file, "    \"e%p\"[label=\"{<index> %-p | %i}\"];\n", node, node, node -> data);
+    fprintf(file, "    \"e%p\"[label=\"{<index> %-p | %s}\"];\n", node, node, node -> data);
 
     if (node -> left) {
         fprintf(file, "    \"e%p\" -> \"e%p\";\n", node, node -> left);

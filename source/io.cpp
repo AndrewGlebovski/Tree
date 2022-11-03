@@ -23,49 +23,40 @@ void write_node(Node *node, FILE *stream, int shift);
  * \param [in] buffer Buffer to read from
  * \return Pointer to new node
 */
-Node *read_node(const char *buffer);
+Node *read_node(char *buffer);
 
 
 
 
-int read_tree(Tree *tree, const char *filepath) {
+int read_tree(Tree *tree, const char *filepath, char **buffer) {
     // ADD ASSERT HERE
 
     int input = open(filepath, O_RDONLY);
 
     // ADD ASSERT HERE
 
-    char *buffer = nullptr;
+    read_in_buffer(input, buffer, get_file_size(input));
 
-    read_in_buffer(input, &buffer, get_file_size(input));
+    replace_in_buffer(*buffer, '\n', ' ');
 
-    replace_in_buffer(buffer, '\n', ' ');
-
-    tree -> root = read_node(buffer);
-
-    free(buffer);
+    tree -> root = read_node(*buffer);
 
     return 0;
 }
 
 
-Node *read_node(const char *buffer) {
+Node *read_node(char *buffer) {
     static int offset = 0;
-
-    String token = get_token(buffer + offset, "{\"}", ""); // {
 
     Node *node = create_node(0);
 
-    token = get_token(token.str + token.len, "{\"}", ""); // "
+    const char *first_quote = strchr(offset + buffer, '"'), *second_quote = strchr(first_quote + 1, '"');
 
-    token = get_token(token.str + token.len, "{\"}", "");
+    node -> data = first_quote + 1;
 
-    if (str_to_int(&token, &node -> data))
-        node = nullptr;
+    *(buffer + (second_quote - buffer)) = '\0';
 
-    token = get_token(token.str + token.len, "{\"}", ""); // "
-
-    String bracket = get_token(token.str + token.len, "{\"}", "");
+    String bracket = get_token(second_quote + 1, "{\"}", "");
 
     offset = (int)(bracket.str - buffer) + bracket.len;
 
@@ -102,7 +93,7 @@ void write_node(Node *node, FILE *stream, int shift) {
 
     fprintf(stream, "%*s{", shift, "");
 
-    fprintf(stream, " \"%i\" ", node -> data);
+    fprintf(stream, " \"%s\" ", node -> data);
 
     if (node -> left) {
         fprintf(stream, "\n");

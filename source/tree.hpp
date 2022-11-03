@@ -7,7 +7,7 @@ typedef enum {
 
 /// Node class
 struct Node {
-    int data = 0;                       ///< Node value
+    const char *data = 0;               ///< Node value
     Node *left = nullptr;               ///< Left child node
     Node *right = nullptr;              ///< Right child node
 };
@@ -37,7 +37,7 @@ int tree_constructor(Tree *tree, Node *root = nullptr);
  * \param [in] right New node's right child
  * \return Pointer to node or nullptr if allocates fail
 */
-Node *create_node(int value, Node *left = nullptr, Node *right = nullptr);
+Node *create_node(const char *value, Node *left = nullptr, Node *right = nullptr);
 
 
 /**
@@ -63,7 +63,7 @@ void print_tree(Tree *tree, FILE *stream = stdout);
  * \param [out] path  Contains path to node (path ends with nullptr)
  * \return Actual pointer if node was found or nullptr
 */
-Node *find_in_tree(Tree *tree, int value, Node *path[] = nullptr);
+Node *find_in_tree(Tree *tree, const char *value, Node *path[] = nullptr);
 
 
 /**
