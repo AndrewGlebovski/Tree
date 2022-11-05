@@ -10,6 +10,8 @@ int main() {
 
     read_tree(&tree, "debug/string-tree.txt");
 
+    akinator_guess(&tree);
+
     FILE *log = fopen("debug/log.html", "w");
 
     DUMP_IT(log, &tree, fprintf(log, "Dumping tree!"));
