@@ -28,18 +28,20 @@ Node *read_node(char *buffer);
 
 
 
-int read_tree(Tree *tree, const char *filepath, char **buffer) {
+int read_tree(Tree *tree, const char *filepath) {
     // ADD ASSERT HERE
 
     int input = open(filepath, O_RDONLY);
 
     // ADD ASSERT HERE
 
-    read_in_buffer(input, buffer, get_file_size(input));
+    char *buffer = nullptr;
 
-    replace_in_buffer(*buffer, '\n', ' ');
+    read_in_buffer(input, &buffer, get_file_size(input));
 
-    tree -> root = read_node(*buffer);
+    replace_in_buffer(buffer, '\n', ' ');
+
+    tree -> root = read_node(buffer);
 
     return 0;
 }
@@ -52,9 +54,13 @@ Node *read_node(char *buffer) {
 
     const char *first_quote = strchr(offset + buffer, '"'), *second_quote = strchr(first_quote + 1, '"');
 
-    node -> data = first_quote + 1;
-
+    char *data = (char *) calloc(100, sizeof(char));
+    
     *(buffer + (second_quote - buffer)) = '\0';
+
+    strcpy(data, first_quote + 1);
+
+    node -> data = data;
 
     String bracket = get_token(second_quote + 1, "{\"}", "");
 

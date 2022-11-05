@@ -1,16 +1,14 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include "tree.hpp"
 #include "io.hpp"
 #include "log.hpp"
+#include "akinator.hpp"
 
 
 int main() {
     Tree tree = {};
 
-    char *buffer = nullptr;
-
-    read_tree(&tree, "debug/string-tree.txt", &buffer);
+    read_tree(&tree, "debug/string-tree.txt");
 
     FILE *log = fopen("debug/log.html", "w");
 
@@ -21,8 +19,6 @@ int main() {
     // write_tree(&tree, "debug/string-tree.txt");
 
     tree_destructor(&tree);
-
-    free(buffer);
 
     printf("Tree!");
 

@@ -108,6 +108,8 @@ void free_node(Node *node) {
         node -> right = nullptr;
     }
 
+    free((char *) node -> data);
+
     free(node);
 }
 

@@ -4,7 +4,7 @@
  * \param [in]  filepath Path to input file
  * \return Non zero value means error
 */
-int read_tree(Tree *tree, const char *filepath, char **buffer);
+int read_tree(Tree *tree, const char *filepath);
 
 
 /**
