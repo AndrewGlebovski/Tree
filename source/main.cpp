@@ -12,6 +12,8 @@ int main() {
 
     akinator_guess(&tree);
 
+    akinator_define(&tree);
+
     FILE *log = fopen("debug/log.html", "w");
 
     DUMP_IT(log, &tree, fprintf(log, "Dumping tree!"));

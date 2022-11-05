@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "tree.hpp"
 #include "akinator.hpp"
 
@@ -37,6 +38,8 @@ int get_answer() {
     while (answer != 'n' && answer != 'y') 
         answer = getchar();
 
+    while (!isspace(getchar())); // skip 'n' symbol
+
     return answer - 'n';
 }
 
@@ -69,13 +72,13 @@ void add_object(Node *node) {
 
     char *name = (char *) calloc(100, sizeof(char)), *question = (char *) calloc(100, sizeof(char));
 
-    getchar(); // skip '\n' in previous line
     fgets(name, 100, stdin);
     name[strlen(name) - 1] = '\0'; // remove '\n' from end of name
 
     printf("What's the difference between %s and %s? %s is ", name, node -> data, name);
 
     fgets(question, 100, stdin);
+    question[strlen(question) - 1] = '\0'; // remove '\n' from end of question
 
     printf("The more you know!\n");
 
@@ -87,4 +90,29 @@ void add_object(Node *node) {
 
 int akinator_guess(Tree *tree) {
     return ask(tree -> root);
+}
+
+
+int akinator_define(Tree *tree) {
+    printf("Enter object name ");
+
+    char name[100] = "";
+    fgets(name, 100, stdin);
+    name[strlen(name) - 1] = '\0'; // remove '\n' from end of name
+
+    Node *path[10];
+    if (!find_in_tree(tree, name, path)) return 1;
+
+    printf("%s is ", name);
+
+    for(int i = 0; path[i] -> left && path[i] -> right; i++) {
+        if (path[i + 1] == path[i] -> left)
+            printf("%s ", path[i] -> data);
+        else
+            printf("not %s ", path[i] -> data);
+    }
+
+    printf("\n");
+
+    return 0;
 }
