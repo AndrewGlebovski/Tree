@@ -10,9 +10,11 @@ int main() {
 
     read_tree(&tree, "debug/string-tree.txt");
 
-    akinator_guess(&tree);
+    // akinator_guess(&tree);
 
-    akinator_define(&tree);
+    // akinator_define(&tree);
+
+    akinator_compare(&tree);
 
     FILE *log = fopen("debug/log.html", "w");
 

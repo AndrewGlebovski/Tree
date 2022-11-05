@@ -93,26 +93,69 @@ int akinator_guess(Tree *tree) {
 }
 
 
+#define PRINT_PROPERTY(path, iter)                  \
+do {                                                \
+    if (path[iter + 1] == path[iter] -> left)       \
+        printf("%s ", path[iter] -> data);          \
+    else                                            \
+        printf("not %s ", path[iter] -> data);      \
+} while(0)
+
+
+// fgets() also writes '\n' to buffer
+#define READ_STRING(var, size)                      \
+    char var[size] = "";                            \
+    fgets(var, size, stdin);                        \
+    var[strlen(var) - 1] = '\0';
+
+
 int akinator_define(Tree *tree) {
     printf("Enter object name ");
 
-    char name[100] = "";
-    fgets(name, 100, stdin);
-    name[strlen(name) - 1] = '\0'; // remove '\n' from end of name
+    READ_STRING(name, 100)
 
     Node *path[10];
     if (!find_in_tree(tree, name, path)) return 1;
 
     printf("%s is ", name);
 
-    for(int i = 0; path[i] -> left && path[i] -> right; i++) {
-        if (path[i + 1] == path[i] -> left)
-            printf("%s ", path[i] -> data);
-        else
-            printf("not %s ", path[i] -> data);
-    }
+    for(int i = 0; path[i] -> left && path[i] -> right; i++) PRINT_PROPERTY(path, i);
 
     printf("\n");
 
     return 0;
 }
+
+
+int akinator_compare(Tree *tree) {
+    READ_STRING(name1, 100)
+    READ_STRING(name2, 100)
+
+    Node *path1[10], *path2[10];
+    if (!find_in_tree(tree, name1, path1)) return 1;
+    if (!find_in_tree(tree, name2, path2)) return 1;
+
+    printf("%s and %s are both ", name1, name2);
+
+    int id = 0;
+
+    for(; path1[id + 1] == path2[id + 1]; id++) PRINT_PROPERTY(path1, id);
+
+    printf("but %s is ", name1);
+
+    for(int i = id; path1[i] -> left && path1[i] -> right; i++) PRINT_PROPERTY(path1, i);
+
+    printf("and %s is ", name2);
+
+    for(int i = id; path2[i] -> left && path2[i] -> right; i++) PRINT_PROPERTY(path2, i);
+
+    printf("\n");
+
+    return 0;
+}
+
+
+#undef PRINT_PROPERTY
+
+
+#undef READ_STRING
