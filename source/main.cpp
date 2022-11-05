@@ -8,13 +8,9 @@
 int main() {
     Tree tree = {};
 
-    read_tree(&tree, "debug/string-tree.txt");
+    read_tree(&tree, "debug/half-life.txt");
 
-    // akinator_guess(&tree);
-
-    // akinator_define(&tree);
-
-    akinator_compare(&tree);
+    akinator_start(&tree);
 
     FILE *log = fopen("debug/log.html", "w");
 
@@ -22,7 +18,7 @@ int main() {
 
     fclose(log);
 
-    // write_tree(&tree, "debug/string-tree.txt");
+    write_tree(&tree, "debug/new-half-life.txt");
 
     tree_destructor(&tree);
 

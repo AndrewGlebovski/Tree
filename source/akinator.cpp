@@ -159,3 +159,34 @@ int akinator_compare(Tree *tree) {
 
 
 #undef READ_STRING
+
+
+void akinator_start(Tree *tree) {
+    char cmd[100] = "";
+
+    printf("Available commands\n");
+    printf("guess   - My powerfull AI will ask you several yes/no question\n");
+    printf("define  - My powerfull AI will show you object properties. Make sure object exists\n");
+    printf("compare - My powerfull AI will show commons and differences of objects. Make sure objects exist\n");
+
+    while (strcmp(cmd, "exit")) {
+        printf("Enter command ");
+        scanf("%s", cmd);
+        getchar(); // skip '\n' symbol
+
+        if (strcmp(cmd, "guess") == 0) {
+            if (akinator_guess(tree))
+                printf("Something went wrong!\n");
+        }
+
+        else if (strcmp(cmd, "define") == 0) {
+            if (akinator_define(tree))
+                printf("Object not found\n");
+        }
+
+        else if (strcmp(cmd, "compare") == 0) {
+            if (akinator_compare(tree))
+                printf("Object not found!\n");
+        }
+    }
+}

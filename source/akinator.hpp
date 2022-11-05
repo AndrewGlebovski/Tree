@@ -20,3 +20,10 @@ int akinator_define(Tree *tree);
  * \return Non zero value means error
 */
 int akinator_compare(Tree *tree);
+
+
+/**
+ * \brief Start application
+ * \param [in] tree Object database
+*/
+void akinator_start(Tree *tree);
