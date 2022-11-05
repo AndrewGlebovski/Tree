@@ -18,12 +18,12 @@ all: run
 
 
 # Завершает сборку
-run: $(addprefix $(BIN_DIR)/, main.o tree.o io.o text.o log.o)
+run: $(addprefix $(BIN_DIR)/, main.o tree.o io.o text.o log.o akinator.o)
 	$(COMPILER) $^ -o run.exe
 
 
 # Предварительная сборка main.cpp
-$(BIN_DIR)/main.o: $(addprefix $(SRC_DIR)/, main.cpp tree.hpp)
+$(BIN_DIR)/main.o: $(addprefix $(SRC_DIR)/, main.cpp tree.hpp akinator.hpp)
 	$(COMPILER) $(FLAGS) -c $< -o $@
 
 
@@ -39,6 +39,11 @@ $(BIN_DIR)/io.o: $(addprefix $(SRC_DIR)/, io.cpp io.hpp tree.hpp lib/text.hpp)
 
 # Предварительная сборка log.cpp
 $(BIN_DIR)/log.o: $(addprefix $(SRC_DIR)/, log.cpp log.hpp tree.hpp)
+	$(COMPILER) $(FLAGS) -c $< -o $@
+
+
+# Предварительная сборка akinator.cpp
+$(BIN_DIR)/akinator.o: $(addprefix $(SRC_DIR)/, akinator.cpp tree.hpp)
 	$(COMPILER) $(FLAGS) -c $< -o $@
 
 
