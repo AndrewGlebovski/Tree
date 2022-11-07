@@ -1,0 +1,34 @@
+{ "Animal" 
+    { "Serve the Combine" 
+        { "High" 
+            { "Strider" }
+            { "Headcrab" }
+        }
+        { "Vortigaunt" }
+    }
+    { "From Portal" 
+        { "Robot" 
+            { "Stupid" 
+                { "Wheatley" }
+                { "GLaDOS" }
+            }
+            { "Protagonist" 
+                { "Chell" }
+                { "Cave Johnson" }
+            }
+        }
+        { "Adept of the Combine" 
+            { "Dr Breen" }
+            { "Rebel" 
+                { "Protagonist" 
+                    { "Gordon Freeman" }
+                    { "Man" 
+                        { "Eli Vance" }
+                        { "Alex Vance" }
+                    }
+                }
+                { "Gman" }
+            }
+        }
+    }
+}

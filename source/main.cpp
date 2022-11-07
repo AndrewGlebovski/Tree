@@ -8,7 +8,7 @@
 int main() {
     Tree tree = {};
 
-    read_tree(&tree, "debug/half-life.txt");
+    read_tree(&tree, "half-life.txt");
 
     akinator_start(&tree);
 
@@ -18,7 +18,7 @@ int main() {
 
     fclose(log);
 
-    write_tree(&tree, "debug/new-half-life.txt");
+    write_tree(&tree, "new-half-life.txt");
 
     tree_destructor(&tree);
 
