@@ -8,6 +8,12 @@
 #include "io.hpp"
 
 
+/// Stream implementation for string
+typedef struct {
+    char *buffer = nullptr;     ///< Char array
+    int offset = 0;             ///< Offset from buffer first element
+} Stream;
+
 
 /**
  * \brief Prints node and it's children
@@ -20,10 +26,10 @@ void write_node(Node *node, FILE *stream, int shift);
 
 /**
  * \brief Creates node and reads its data from buffer 
- * \param [in] buffer Buffer to read from
+ * \param [in] stream Buffer to read from and its offset
  * \return Pointer to new node
 */
-Node *read_node(char *buffer);
+Node *read_node(Stream *stream);
 
 
 
@@ -35,28 +41,29 @@ int read_tree(Tree *tree, const char *filepath) {
 
     // ADD ASSERT HERE
 
-    char *buffer = nullptr;
+    Stream stream = {};
 
-    read_in_buffer(input, &buffer, get_file_size(input));
+    read_in_buffer(input, &stream.buffer, get_file_size(input));
 
-    replace_in_buffer(buffer, '\n', ' ');
+    replace_in_buffer(stream.buffer, '\n', ' ');
 
-    tree -> root = read_node(buffer);
+    tree -> root = read_node(&stream);
+
+    free(stream.buffer);
 
     return 0;
 }
 
 
-Node *read_node(char *buffer) {
-    static int offset = 0;
-
+Node *read_node(Stream *stream) {
     Node *node = create_node(0);
 
-    const char *first_quote = strchr(offset + buffer, '"'), *second_quote = strchr(first_quote + 1, '"');
+    const char *first_quote  = strchr(stream -> buffer + stream -> offset, '"');
+    const char *second_quote = strchr(first_quote + 1, '"');
 
     char *data = (char *) calloc(100, sizeof(char));
     
-    *(buffer + (second_quote - buffer)) = '\0';
+    *(stream -> buffer + (second_quote - stream -> buffer)) = '\0';
 
     strcpy(data, first_quote + 1);
 
@@ -64,14 +71,14 @@ Node *read_node(char *buffer) {
 
     String bracket = get_token(second_quote + 1, "{\"}", "");
 
-    offset = (int)(bracket.str - buffer) + bracket.len;
+    stream -> offset = (int)(bracket.str - stream -> buffer) + bracket.len;
 
     if (strncmp(bracket.str, "{", bracket.len) == 0) {
-        offset -= bracket.len;
+        stream -> offset -= bracket.len;
         
-        node -> left = read_node(buffer);
+        node -> left = read_node(stream);
         
-        node -> right = read_node(buffer);
+        node -> right = read_node(stream);
     }
 
     return node;
