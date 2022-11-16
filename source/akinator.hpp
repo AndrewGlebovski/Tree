@@ -3,7 +3,7 @@
  * \param [in] tree Object database
  * \return Non zero value means error
 */
-int akinator_guess(Tree *tree);
+int akinator_guess(Tree *tree, char *print_buffer);
 
 
 /**
@@ -11,7 +11,7 @@ int akinator_guess(Tree *tree);
  * \param [in] tree Object database
  * \return Non zero value means error
 */
-int akinator_define(Tree *tree);
+int akinator_define(Tree *tree, char *print_buffer);
 
 
 /**
@@ -19,7 +19,7 @@ int akinator_define(Tree *tree);
  * \param [in] tree Object database
  * \return Non zero value means error
 */
-int akinator_compare(Tree *tree);
+int akinator_compare(Tree *tree, char *print_buffer);
 
 
 /**
