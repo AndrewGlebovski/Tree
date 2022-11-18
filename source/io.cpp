@@ -3,10 +3,17 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
-#include "lib/text.hpp"
+#include <ctype.h>
 #include "tree.hpp"
 #include "io.hpp"
 
+
+
+
+typedef struct {
+    char *buffer = nullptr;
+    int offset = 0;
+} Stream;
 
 
 /**
@@ -23,63 +30,83 @@ void write_node(Node *node, FILE *stream, int shift);
  * \param [in] buffer Buffer to read from
  * \return Pointer to new node
 */
-Node *read_node(const char *buffer);
+Node *read_node(Stream *stream);
+
+
+/// Returns stream first symbol considering offset
+char get_stream_char(Stream *stream);
 
 
 
 
-int read_tree(Tree *tree, const char *filepath) {
-    // ADD ASSERT HERE
+int read_tree(Tree *tree) {
+    Stream stream = {};
 
-    int input = open(filepath, O_RDONLY);
+    stream.buffer = (char *) calloc(512, sizeof(char));
 
-    // ADD ASSERT HERE
+    fgets(stream.buffer, 512, stdin);
 
-    char *buffer = nullptr;
+    stream.buffer[strlen(stream.buffer) - 1] = '\0';
 
-    read_in_buffer(input, &buffer, get_file_size(input));
+    tree -> root = read_node(&stream);
 
-    replace_in_buffer(buffer, '\n', ' ');
-
-    tree -> root = read_node(buffer);
-
-    free(buffer);
+    free(stream.buffer);
 
     return 0;
 }
 
 
-Node *read_node(const char *buffer) {
-    static int offset = 0;
+char get_stream_char(Stream *stream) {
+    return *(stream -> buffer + stream -> offset);
+}
 
-    String token = get_token(buffer + offset, "{\"}", ""); // {
 
-    Node *node = create_node(0);
+Node *read_node(Stream *stream) {
+    Node *node = (Node *) calloc(1, sizeof(Node));
 
-    token = get_token(token.str + token.len, "{\"}", ""); // "
+    if (get_stream_char(stream) == '(') // first ( check
+        stream -> offset++;
+    else 
+        return nullptr;
 
-    token = get_token(token.str + token.len, "{\"}", "");
+    if (get_stream_char(stream) == '(') { // operator expression
+        node -> type = NODE_TYPES::OP;
 
-    if (str_to_int(&token, &node -> data))
-        node = nullptr;
+        node -> left = read_node(stream);
 
-    token = get_token(token.str + token.len, "{\"}", ""); // "
+        if (!node -> left) return nullptr;
 
-    String bracket = get_token(token.str + token.len, "{\"}", "");
+        node -> value.op = chr2op(get_stream_char(stream));
 
-    offset = (int)(bracket.str - buffer) + bracket.len;
+        stream -> offset++;
 
-    if (strncmp(bracket.str, "{", bracket.len) == 0) {
-        offset -= bracket.len;
-        
-        node -> left = read_node(buffer);
-        
-        node -> right = read_node(buffer);
+        node -> right = read_node(stream);
+
+        if (!node -> right) return nullptr;
     }
+
+    else { // static expresssion
+        if (isalpha(get_stream_char(stream))) {
+            node -> type = NODE_TYPES::VAR;
+
+            node -> value.var = get_stream_char(stream);
+
+            stream -> offset++; // skip variable
+        }
+        else {
+            node -> type = NODE_TYPES::NUM;
+
+            int n = 0;
+            sscanf(stream -> buffer + stream -> offset, "%lg%n", &node -> value.dbl, &n);
+
+            stream -> offset += n; // skip number
+        }
+    }
+
+    stream -> offset++; // closing )
 
     return node;
 }
-
 
 
 int write_tree(Tree *tree, const char *filepath) {
@@ -102,7 +129,19 @@ void write_node(Node *node, FILE *stream, int shift) {
 
     fprintf(stream, "%*s{", shift, "");
 
-    fprintf(stream, " \"%i\" ", node -> data);
+    switch (node -> type) {
+        case NODE_TYPES::OP:
+            fprintf(stream, " \"%i\" ", node -> value.op);
+            break;
+        case NODE_TYPES::NUM:
+            fprintf(stream, " \"%g\" ", node -> value.dbl);
+            break;
+        case NODE_TYPES::VAR:
+            fprintf(stream, " \"%c\" ", node -> value.var);
+            break;
+        default:
+            break;
+    }
 
     if (node -> left) {
         fprintf(stream, "\n");

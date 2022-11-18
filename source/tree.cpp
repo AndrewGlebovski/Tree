@@ -54,25 +54,19 @@ int tree_constructor(Tree *tree, Node *root) {
 
     if (root) {
         tree -> root = root;
+        tree -> size = 1;
     }
-
-    else {
-        tree -> root = create_node(0);
-        
-        ASSERT(tree -> root, "Failed to allocate tree root!", ALLOC_FAIL);
-    }
-
-    tree -> size = 1;
 
     return 0;
 }
 
 
-Node *create_node(int value, Node *left, Node *right) {
+Node *create_node(int type, NodeValue value, Node *left, Node *right) {
     Node *node = (Node *) calloc(1, sizeof(Node));
 
     if (node) {
-        node -> data = value;
+        node -> type = type;
+        node -> value = value;
         node -> left = left;
         node -> right = right;
     }
@@ -127,7 +121,19 @@ void print_node(Node *node, FILE *stream) {
 
     if (node -> left) print_node(node -> left, stream);
 
-    fprintf(stream, "%i ", node -> data);
+    switch (node -> type) {
+        case NODE_TYPES::OP:
+            fprintf(stream, "%s ", op2str(node -> value.op));
+            break;
+        case NODE_TYPES::NUM:
+            fprintf(stream, "%g ", node -> value.dbl);
+            break;
+        case NODE_TYPES::VAR:
+            fprintf(stream, "%c ", node -> value.var);
+            break;
+        default:
+            fprintf(stream, "@");
+    }
 
     if (node -> left) print_node(node -> right, stream);
 
@@ -135,57 +141,23 @@ void print_node(Node *node, FILE *stream) {
 }
 
 
-Node *find_in_tree(Tree *tree, int value, Node *path[]) {
-    // ADD ASSERT HERE
-
-    if (path)
-        return full_search(tree -> root, value, path);
-    else
-        return fast_search(tree -> root, value);
+const char *op2str(int op) {
+    switch(op) {
+        case OPERATORS::OP_ADD: return "+";
+        case OPERATORS::OP_SUB: return "-";
+        case OPERATORS::OP_MUL: return "*";
+        case OPERATORS::OP_DIV: return "/";
+        default: return "#";
+    }
 }
 
 
-Node *fast_search(Node *node, int value) {
-    if (!node) return nullptr;
-
-    if (node -> data == value) return node;
-
-    Node *result = nullptr;
-
-    if (node -> left) {
-        if ((result = fast_search(node -> left, value)))
-            return result;
+int chr2op(char op) {
+    switch(op) {
+        case '+': return OPERATORS::OP_ADD;
+        case '-': return OPERATORS::OP_SUB;
+        case '*': return OPERATORS::OP_MUL;
+        case '/': return OPERATORS::OP_DIV;
+        default: return OP_ERR;
     }
-
-    if (node -> right) {
-        if ((result = fast_search(node -> right, value)))
-            return result;
-    }
-
-    return nullptr;
-}
-
-
-Node *full_search(Node *node, int value, Node *path[]) {
-    if (!node) return nullptr;
-
-    *path = node;
-
-    if (node -> data == value) return node;
-
-    Node *result = nullptr;
-
-    if (node -> left) {
-        if ((result = full_search(node -> left, value, path + 1)))
-            return result;
-    }
-
-    if (node -> right) {
-        if ((result = full_search(node -> right, value, path + 1)))
-            return result;
-    }
-
-    *path = nullptr;
-
-    return nullptr;
 }

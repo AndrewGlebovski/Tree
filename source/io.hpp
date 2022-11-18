@@ -1,10 +1,9 @@
 /**
- * \brief Reads tree from file
- * \param [out] tree     Reads file in this tree
- * \param [in]  filepath Path to input file
+ * \brief Reads tree
+ * \param [out] tree Save input in this tree
  * \return Non zero value means error
 */
-int read_tree(Tree *tree, const char *filepath);
+int read_tree(Tree *tree);
 
 
 /**

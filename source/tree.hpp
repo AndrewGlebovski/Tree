@@ -5,9 +5,33 @@ typedef enum {
 } ERROR_CODES;
 
 
+typedef enum {
+    OP_ERR = 0,
+    OP_ADD = 1,
+    OP_SUB = 2,
+    OP_MUL = 3,
+    OP_DIV = 4,
+} OPERATORS;
+
+
+typedef enum {
+    OP  = 1,
+    NUM = 2,
+    VAR = 3,
+} NODE_TYPES;
+
+
+typedef union {
+    int    op;
+    double dbl;
+    char   var;
+} NodeValue; 
+
+
 /// Node class
 struct Node {
-    int data = 0;                       ///< Node value
+    int type = 0;                       ///< Node value
+    NodeValue value;                    ///< Node value
     Node *left = nullptr;               ///< Left child node
     Node *right = nullptr;              ///< Right child node
 };
@@ -37,7 +61,7 @@ int tree_constructor(Tree *tree, Node *root = nullptr);
  * \param [in] right New node's right child
  * \return Pointer to node or nullptr if allocates fail
 */
-Node *create_node(int value, Node *left = nullptr, Node *right = nullptr);
+Node *create_node(int type, NodeValue value, Node *left = nullptr, Node *right = nullptr);
 
 
 /**
@@ -57,18 +81,16 @@ void print_tree(Tree *tree, FILE *stream = stdout);
 
 
 /**
- * \brief Find node in tree by its value
- * \param [in]  tree  Search will be in this tree
- * \param [in]  value Searching for this value
- * \param [out] path  Contains path to node (path ends with nullptr)
- * \return Actual pointer if node was found or nullptr
+ * \brief Converts operator from #OPERATORS to its string value
+ * \param [in] op Operator to convert
+ * \return Const string or "#" if symbol is unknown
 */
-Node *find_in_tree(Tree *tree, int value, Node *path[] = nullptr);
+const char *op2str(int op);
 
 
 /**
- * Checks for errors in tree
- * \param [in] tree Check out this tree
- * \return Non zero value means error
+ * \brief Converts symbol to operator from #OPERATORS
+ * \param [in] op Operator symbol
+ * \return Operator value or OP_ERR if symbol is unknown
 */
-int tree_verifier(Tree *tree);  // IMPLEMENTATION REQUIRED
+int chr2op(char op);
