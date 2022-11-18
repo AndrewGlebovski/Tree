@@ -18,7 +18,7 @@ all: run
 
 
 # Завершает сборку
-run: $(addprefix $(BIN_DIR)/, main.o tree.o io.o)
+run: $(addprefix $(BIN_DIR)/, main.o tree.o io.o dif.o)
 	$(COMPILER) $^ -o run.exe
 
 
@@ -39,6 +39,11 @@ $(BIN_DIR)/io.o: $(addprefix $(SRC_DIR)/, io.cpp io.hpp tree.hpp)
 
 # Предварительная сборка log.cpp
 $(BIN_DIR)/log.o: $(addprefix $(SRC_DIR)/, log.cpp log.hpp tree.hpp)
+	$(COMPILER) $(FLAGS) -c $< -o $@
+
+
+# Предварительная сборка dif.cpp
+$(BIN_DIR)/dif.o: $(addprefix $(SRC_DIR)/, dif.cpp dif.hpp)
 	$(COMPILER) $(FLAGS) -c $< -o $@
 
 

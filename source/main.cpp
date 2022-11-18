@@ -1,20 +1,14 @@
 #include <stdio.h>
 #include "tree.hpp"
 #include "io.hpp"
-// #include "log.hpp"
+#include "dif.hpp"
 
 
 int main() {
     Tree tree = {};
 
     read_tree(&tree);
-    /*
-    FILE *log = fopen("debug/log.html", "w");
-
-    DUMP_IT(log, &tree, fprintf(log, "Dumping tree!"));
-
-    fclose(log);
-    */
+    
     print_tree(&tree);
 
     tree_destructor(&tree);
