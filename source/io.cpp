@@ -70,7 +70,7 @@ Node *read_node(Stream *stream) {
         return nullptr;
 
     if (get_stream_char(stream) == '(') { // operator expression
-        node -> type = NODE_TYPES::OP;
+        node -> type = NODE_TYPES::TYPE_OP;
 
         node -> left = read_node(stream);
 
@@ -87,14 +87,14 @@ Node *read_node(Stream *stream) {
 
     else { // static expresssion
         if (isalpha(get_stream_char(stream))) {
-            node -> type = NODE_TYPES::VAR;
+            node -> type = NODE_TYPES::TYPE_VAR;
 
             node -> value.var = get_stream_char(stream);
 
             stream -> offset++; // skip variable
         }
         else {
-            node -> type = NODE_TYPES::NUM;
+            node -> type = NODE_TYPES::TYPE_NUM;
 
             int n = 0;
             sscanf(stream -> buffer + stream -> offset, "%lg%n", &node -> value.dbl, &n);
@@ -130,13 +130,13 @@ void write_node(Node *node, FILE *stream, int shift) {
     fprintf(stream, "%*s{", shift, "");
 
     switch (node -> type) {
-        case NODE_TYPES::OP:
+        case NODE_TYPES::TYPE_OP:
             fprintf(stream, " \"%i\" ", node -> value.op);
             break;
-        case NODE_TYPES::NUM:
+        case NODE_TYPES::TYPE_NUM:
             fprintf(stream, " \"%g\" ", node -> value.dbl);
             break;
-        case NODE_TYPES::VAR:
+        case NODE_TYPES::TYPE_VAR:
             fprintf(stream, " \"%c\" ", node -> value.var);
             break;
         default:

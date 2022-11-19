@@ -122,20 +122,20 @@ void print_node(Node *node, FILE *stream) {
     if (node -> left) print_node(node -> left, stream);
 
     switch (node -> type) {
-        case NODE_TYPES::OP:
+        case NODE_TYPES::TYPE_OP:
             fprintf(stream, "%s ", op2str(node -> value.op));
             break;
-        case NODE_TYPES::NUM:
+        case NODE_TYPES::TYPE_NUM:
             fprintf(stream, "%g ", node -> value.dbl);
             break;
-        case NODE_TYPES::VAR:
+        case NODE_TYPES::TYPE_VAR:
             fprintf(stream, "%c ", node -> value.var);
             break;
         default:
             fprintf(stream, "@");
     }
 
-    if (node -> left) print_node(node -> right, stream);
+    if (node -> right) print_node(node -> right, stream);
 
     fprintf(stream, ") ");
 }
@@ -147,6 +147,10 @@ const char *op2str(int op) {
         case OPERATORS::OP_SUB: return "-";
         case OPERATORS::OP_MUL: return "*";
         case OPERATORS::OP_DIV: return "/";
+        case OPERATORS::OP_POW: return "^";
+        case OPERATORS::OP_LOG: return "log";
+        case OPERATORS::OP_SIN: return "sin";
+        case OPERATORS::OP_COS: return "cos";
         default: return "#";
     }
 }
@@ -158,6 +162,10 @@ int chr2op(char op) {
         case '-': return OPERATORS::OP_SUB;
         case '*': return OPERATORS::OP_MUL;
         case '/': return OPERATORS::OP_DIV;
+        case '^': return OPERATORS::OP_POW;
+        case 'l': return OPERATORS::OP_LOG;
+        case 's': return OPERATORS::OP_SIN;
+        case 'c': return OPERATORS::OP_COS;
         default: return OP_ERR;
     }
 }

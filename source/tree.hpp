@@ -11,13 +11,17 @@ typedef enum {
     OP_SUB = 2,
     OP_MUL = 3,
     OP_DIV = 4,
+    OP_POW = 5,
+    OP_LOG = 6,
+    OP_SIN = 7,
+    OP_COS = 8,
 } OPERATORS;
 
 
 typedef enum {
-    OP  = 1,
-    NUM = 2,
-    VAR = 3,
+    TYPE_OP  = 1,
+    TYPE_NUM = 2,
+    TYPE_VAR = 3,
 } NODE_TYPES;
 
 
