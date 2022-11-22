@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include "tree.hpp"
 #include "dif.hpp"
@@ -76,4 +77,95 @@ Node *diff(const Node *node) {
         default:
             return nullptr;
     }
+}
+
+
+#define IS_OP(_op) node -> type == NODE_TYPES::TYPE_OP && node -> value.op == OP_##_op
+#define IS_NUM(_child, _num) node -> _child -> type == NODE_TYPES::TYPE_NUM && (node -> _child -> value.dbl - _num) < 1e-6
+#define FREE(ptr) free(ptr); ptr = nullptr
+
+void copy_node(Node *origin, Node *destination) {
+    destination -> type = origin -> type;
+    destination -> value = origin -> value;
+    destination -> left = origin -> left;
+    destination -> right = origin -> right;
+
+    free(origin);
+}
+
+
+
+
+void optimize(Node *node) {
+    if (node -> type != NODE_TYPES::TYPE_OP)
+        return;
+
+    if (node -> left) optimize(node -> left);
+    if (node -> right) optimize(node -> right);
+
+    if (IS_OP(SIN)) {
+        node -> type = NODE_TYPES::TYPE_NUM;
+        node -> value.dbl = sin(node -> right -> value.dbl);
+    }
+    else if (IS_OP(COS)) {
+        node -> type = NODE_TYPES::TYPE_NUM;
+        node -> value.dbl = cos(node -> right -> value.dbl);
+    }
+    else if (node -> left -> type == NODE_TYPES::TYPE_NUM && node -> right -> type == NODE_TYPES::TYPE_NUM) {
+        node -> type = NODE_TYPES::TYPE_NUM;
+
+        switch (node -> value.op) {
+            case OPERATORS::OP_ADD: node -> value.dbl = node -> left -> value.dbl + node -> right -> value.dbl; break;
+            case OPERATORS::OP_SUB: node -> value.dbl = node -> left -> value.dbl - node -> right -> value.dbl; break;
+            case OPERATORS::OP_MUL: node -> value.dbl = node -> left -> value.dbl * node -> right -> value.dbl; break;
+            case OPERATORS::OP_DIV: node -> value.dbl = node -> left -> value.dbl / node -> right -> value.dbl; break;
+            case OPERATORS::OP_POW: node -> value.dbl = pow(node -> left -> value.dbl, node -> right -> value.dbl); break;
+            case OPERATORS::OP_LOG: node -> value.dbl = log(node -> right -> value.dbl) / log(node -> left -> value.dbl); break;
+            default: return;
+        }
+
+        FREE(node -> left);
+    }
+    else if (IS_OP(POW) && IS_NUM(right, 0)) {
+        node -> type = NODE_TYPES::TYPE_NUM;
+        node -> value.dbl = 1;
+
+        FREE(node -> left);
+    }
+    else if (IS_OP(POW) && IS_NUM(right, 1)) {
+        FREE(node -> right);
+        copy_node(node -> left, node);
+        return;
+    }
+    else if (IS_OP(MUL) && IS_NUM(right, 0)) {
+        node -> type = NODE_TYPES::TYPE_NUM;
+        node -> value.dbl = 0;
+
+        FREE(node -> left);
+    }
+    else if (IS_OP(MUL) && IS_NUM(right, 1)) {
+        FREE(node -> right);
+        copy_node(node -> left, node);
+        return;
+    }
+    else if (IS_OP(ADD) && IS_NUM(right, 0)) {
+        FREE(node -> right);
+        copy_node(node -> left, node);
+        return;
+    }
+    else if (IS_OP(SUB) && IS_NUM(right, 0)) {
+        FREE(node -> right);
+        copy_node(node -> left, node);
+        return;
+    }
+    else if (IS_OP(DIV) && IS_NUM(right, 1)) {
+        FREE(node -> right);
+        copy_node(node -> left, node);
+        return;
+    }
+    else {
+        return;
+    }
+
+    FREE(node -> right);
 }

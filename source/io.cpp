@@ -83,6 +83,12 @@ Node *read_node(Stream *stream) {
         node -> right = read_node(stream);
 
         if (!node -> right) return nullptr;
+
+        if (node -> right -> type == NODE_TYPES::TYPE_VAR) {
+            Node *swap = node -> right;
+            node -> right = node -> left;
+            node -> left = swap;
+        }
     }
 
     else { // static expresssion

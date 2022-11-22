@@ -4,3 +4,6 @@
  * \return New tree
 */
 Node *diff(const Node *node);
+
+
+void optimize(Node *node);
