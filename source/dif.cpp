@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <ctype.h>
 #include "tree.hpp"
 #include "dif.hpp"
 
@@ -45,6 +46,9 @@ Node *create_copy(const Node *node) {
 #define Log(left, right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_LOG}, left, right)
 #define Sin(right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_SIN}, nullptr, right)
 #define Cos(right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_COS}, nullptr, right)
+#define Ln(right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_LOG}, create_num(exp(1)), right)
+
+#define IS_TYPE(_node, _type) _node -> type == TYPE_##_type
 
 
 Node *diff(const Node *node) {
@@ -52,7 +56,8 @@ Node *diff(const Node *node) {
         case NODE_TYPES::TYPE_NUM:
             return create_num(0);
         case NODE_TYPES::TYPE_VAR:
-            return create_num(1);
+            if (tolower(node -> value.var) == 'x') return create_num(1);
+            else return create_num(0);
         case NODE_TYPES::TYPE_OP:
             switch (node -> value.op) {
                 case OPERATORS::OP_ADD:
@@ -64,13 +69,18 @@ Node *diff(const Node *node) {
                 case OPERATORS::OP_DIV:
                     return Div(Sub(Mul(dL, R), Mul(dR, L)), Mul(R, R));
                 case OPERATORS::OP_POW:
-                    return Mul(Mul(R, Pow(L, Sub(R, create_num(1)))), dL);
+                    if ((IS_TYPE(node -> left, VAR) || IS_TYPE(node -> left, OP)) && (IS_TYPE(node -> right, VAR) || IS_TYPE(node -> right, OP)))
+                        return Mul(Pow(L, R), Add(Mul(dL, Ln(R)), Div(Mul(dR, L), R)));
+                    else if (IS_TYPE(node -> left, VAR) || IS_TYPE(node -> left, OP))
+                        return Mul(Mul(R, Pow(L, Sub(R, create_num(1)))), dL);
+                    else
+                        return Mul(Mul(Pow(L, R), Ln(L)), dR);
                 case OPERATORS::OP_LOG:
-                    return Mul(Div(create_num(1), Mul(R, Log(create_num(exp(1)), L))), dR);
+                    return Div(dR, Mul(R, Ln(L)));
                 case OPERATORS::OP_SIN:
                     return Mul(Cos(R), dR);
                 case OPERATORS::OP_COS:
-                    return Mul(Mul(create_num(1), Sin(R)), dR);
+                    return Mul(Mul(create_num(-1), Sin(R)), dR);
                 default: 
                     return nullptr;
             }
@@ -81,7 +91,7 @@ Node *diff(const Node *node) {
 
 
 #define IS_OP(_op) node -> type == NODE_TYPES::TYPE_OP && node -> value.op == OP_##_op
-#define IS_NUM(_child, _num) node -> _child -> type == NODE_TYPES::TYPE_NUM && (node -> _child -> value.dbl - _num) < 1e-6
+#define IS_NUM(_child, _num) (node -> _child -> type == NODE_TYPES::TYPE_NUM && fabs(node -> _child -> value.dbl - _num) < 1e-8)
 #define FREE(ptr) free(ptr); ptr = nullptr
 
 void copy_node(Node *origin, Node *destination) {
@@ -104,10 +114,14 @@ void optimize(Node *node) {
     if (node -> right) optimize(node -> right);
 
     if (IS_OP(SIN)) {
+        if (node -> left) {FREE(node -> left);}
+
         node -> type = NODE_TYPES::TYPE_NUM;
         node -> value.dbl = sin(node -> right -> value.dbl);
     }
     else if (IS_OP(COS)) {
+        if (node -> left) {FREE(node -> left);}
+
         node -> type = NODE_TYPES::TYPE_NUM;
         node -> value.dbl = cos(node -> right -> value.dbl);
     }
@@ -137,7 +151,7 @@ void optimize(Node *node) {
         copy_node(node -> left, node);
         return;
     }
-    else if (IS_OP(MUL) && IS_NUM(right, 0)) {
+    else if (IS_OP(MUL) && (IS_NUM(right, 0) || IS_NUM(left, 0))) {
         node -> type = NODE_TYPES::TYPE_NUM;
         node -> value.dbl = 0;
 
@@ -148,9 +162,19 @@ void optimize(Node *node) {
         copy_node(node -> left, node);
         return;
     }
+    else if (IS_OP(MUL) && IS_NUM(left, 1)) {
+        FREE(node -> left);
+        copy_node(node -> right, node);
+        return;
+    }
     else if (IS_OP(ADD) && IS_NUM(right, 0)) {
         FREE(node -> right);
         copy_node(node -> left, node);
+        return;
+    }
+    else if (IS_OP(ADD) && IS_NUM(left, 0)) {
+        FREE(node -> left);
+        copy_node(node -> right, node);
         return;
     }
     else if (IS_OP(SUB) && IS_NUM(right, 0)) {
@@ -162,6 +186,14 @@ void optimize(Node *node) {
         FREE(node -> right);
         copy_node(node -> left, node);
         return;
+    }
+    else if (IS_OP(DIV) && node -> left -> type == TYPE_VAR && node -> right -> type == TYPE_VAR) {
+        if (node -> left -> value.var == node -> right -> value.var) {
+            node -> type = NODE_TYPES::TYPE_NUM;
+            node -> value.dbl = 1;
+
+            FREE(node -> left);
+        }
     }
     else {
         return;

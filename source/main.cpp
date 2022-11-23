@@ -25,7 +25,7 @@ int main() {
     
     for(int i = 1; i <= order; i++) {
         Tree diff_tree = {diff(tree.root), 1};
-
+        print_tree(&diff_tree);
         optimize(diff_tree.root);
 
         printf("%ith derivative: ", i);

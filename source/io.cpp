@@ -84,10 +84,12 @@ Node *read_node(Stream *stream) {
 
         if (!node -> right) return nullptr;
 
-        if (node -> right -> type == NODE_TYPES::TYPE_VAR) {
-            Node *swap = node -> right;
-            node -> right = node -> left;
-            node -> left = swap;
+        if (node -> value.op == OP_ADD || node -> value.op == OP_MUL) {
+            if (node -> right -> type == NODE_TYPES::TYPE_VAR) {
+                Node *swap = node -> right;
+                node -> right = node -> left;
+                node -> left = swap;
+            }
         }
     }
 
