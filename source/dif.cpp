@@ -126,18 +126,9 @@ void optimize(Node *node) {
         node -> value.dbl = cos(node -> right -> value.dbl);
     }
     else if (node -> left -> type == NODE_TYPES::TYPE_NUM && node -> right -> type == NODE_TYPES::TYPE_NUM) {
-        node -> type = NODE_TYPES::TYPE_NUM;
-
-        switch (node -> value.op) {
-            case OPERATORS::OP_ADD: node -> value.dbl = node -> left -> value.dbl + node -> right -> value.dbl; break;
-            case OPERATORS::OP_SUB: node -> value.dbl = node -> left -> value.dbl - node -> right -> value.dbl; break;
-            case OPERATORS::OP_MUL: node -> value.dbl = node -> left -> value.dbl * node -> right -> value.dbl; break;
-            case OPERATORS::OP_DIV: node -> value.dbl = node -> left -> value.dbl / node -> right -> value.dbl; break;
-            case OPERATORS::OP_POW: node -> value.dbl = pow(node -> left -> value.dbl, node -> right -> value.dbl); break;
-            case OPERATORS::OP_LOG: node -> value.dbl = log(node -> right -> value.dbl) / log(node -> left -> value.dbl); break;
-            default: return;
-        }
-
+        node -> value.dbl = calc_value(node, 0.0);
+        node -> type = TYPE_NUM;
+        
         FREE(node -> left);
     }
     else if (IS_OP(POW) && IS_NUM(right, 0)) {
@@ -200,4 +191,23 @@ void optimize(Node *node) {
     }
 
     FREE(node -> right);
+}
+
+
+double calc_value(const Node *node, double x) {
+    switch (node -> type) {
+        case TYPE_NUM: return node -> value.dbl;
+        case TYPE_VAR: return x;
+        case TYPE_OP:
+            switch (node -> value.op) {
+                case OPERATORS::OP_ADD: return calc_value(node -> left, x) + calc_value(node -> right, x);
+                case OPERATORS::OP_SUB: return calc_value(node -> left, x) - calc_value(node -> right, x);
+                case OPERATORS::OP_MUL: return calc_value(node -> left, x) * calc_value(node -> right, x);
+                case OPERATORS::OP_DIV: return calc_value(node -> left, x) / calc_value(node -> right, x);
+                case OPERATORS::OP_POW: return pow(calc_value(node -> left, x), calc_value(node -> right, x));
+                case OPERATORS::OP_LOG: return log(calc_value(node -> right, x)) / log(calc_value(node -> left, x));
+                default: return 0.0;
+            }
+        default: return 0.0;
+    }
 }
