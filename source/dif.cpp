@@ -206,6 +206,8 @@ double calc_value(const Node *node, double x) {
                 case OPERATORS::OP_DIV: return calc_value(node -> left, x) / calc_value(node -> right, x);
                 case OPERATORS::OP_POW: return pow(calc_value(node -> left, x), calc_value(node -> right, x));
                 case OPERATORS::OP_LOG: return log(calc_value(node -> right, x)) / log(calc_value(node -> left, x));
+                case OPERATORS::OP_SIN: return sin(calc_value(node -> right, x));
+                case OPERATORS::OP_COS: return cos(calc_value(node -> right, x));
                 default: return 0.0;
             }
         default: return 0.0;
