@@ -23,7 +23,7 @@ int main() {
     printf("Function: ");
     print_tree(&tree);
 
-    create_derivative_doc(&tree, order, 1.5);
+    // create_derivative_doc(&tree, order, 1.5);
 
     for(int i = 1; i <= order; i++) {
         Tree diff_tree = {diff(tree.root), 1};

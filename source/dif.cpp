@@ -127,17 +127,25 @@ void optimize(Node *node) {
     if (IS_OP(SIN)) {
         if (node -> left) {FREE(node -> left);}
 
-        node -> type = NODE_TYPES::TYPE_NUM;
-        node -> value.dbl = sin(node -> right -> value.dbl);
+        if (IS_TYPE(node -> right, NUM)) {
+            node -> type = NODE_TYPES::TYPE_NUM;
+            node -> value.dbl = sin(node -> right -> value.dbl);
+        }
+        else
+            return;
     }
     else if (IS_OP(COS)) {
         if (node -> left) {FREE(node -> left);}
 
-        node -> type = NODE_TYPES::TYPE_NUM;
-        node -> value.dbl = cos(node -> right -> value.dbl);
+        if (IS_TYPE(node -> right, NUM)) {
+            node -> type = NODE_TYPES::TYPE_NUM;
+            node -> value.dbl = cos(node -> right -> value.dbl);
+        }
+        else
+            return;
     }
-    else if (node -> left -> type == NODE_TYPES::TYPE_NUM && node -> right -> type == NODE_TYPES::TYPE_NUM) {
-        node -> value.dbl = calc_value(node, 0.0);
+    else if (IS_TYPE(node -> left, NUM) && IS_TYPE(node -> right, NUM)) {
+        node -> value.dbl = calc_value(node, 1.0);
         node -> type = TYPE_NUM;
         
         FREE(node -> left);

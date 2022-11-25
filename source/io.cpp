@@ -4,16 +4,44 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <assert.h>
 #include "tree.hpp"
 #include "io.hpp"
 
 
+const double _EXP = 2.71828, _PI = 3.14159;
 
 
-typedef struct {
-    char *buffer = nullptr;
-    int offset = 0;
-} Stream;
+Node *create_num(double num);
+
+
+Node *create_copy(const Node *node);
+
+
+#define Add(left, right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_ADD}, left, right)
+#define Sub(left, right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_SUB}, left, right)
+#define Mul(left, right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_MUL}, left, right)
+#define Div(left, right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_DIV}, left, right)
+#define Pow(left, right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_POW}, left, right)
+#define Log(left, right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_LOG}, left, right)
+#define Sin(right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_SIN}, nullptr, right)
+#define Cos(right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_COS}, nullptr, right)
+#define Ln(right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_LOG}, create_num(_EXP), right)
+
+
+
+
+Node *getG(const char *str);
+Node *getE();         ///< E::=T{[+-]T}*
+Node *getT();         ///< T::=D{[*/]D}*
+Node *getD();         ///< D::=U{'^'U}*
+Node *getU();         ///< U::=['-''sin''cos''ln']P|P
+Node *getP();         ///< P::='('E')'|N
+Node *getV();
+Node *getN();         ///< N::=['0'-'9']
+
+
+const char *s = nullptr;
 
 
 /**
@@ -25,95 +53,20 @@ typedef struct {
 void write_node(Node *node, FILE *stream, int shift);
 
 
-/**
- * \brief Creates node and reads its data from buffer 
- * \param [in] buffer Buffer to read from
- * \return Pointer to new node
-*/
-Node *read_node(Stream *stream);
-
-
-/// Returns stream first symbol considering offset
-char get_stream_char(Stream *stream);
-
-
 
 
 int read_tree(Tree *tree) {
-    Stream stream = {};
+    char *buffer = (char *) calloc(512, sizeof(char));
 
-    stream.buffer = (char *) calloc(512, sizeof(char));
+    fgets(buffer, 512, stdin);
 
-    fgets(stream.buffer, 512, stdin);
+    buffer[strlen(buffer) - 1] = '\0';
 
-    stream.buffer[strlen(stream.buffer) - 1] = '\0';
+    tree -> root = getG(buffer);
 
-    tree -> root = read_node(&stream);
-
-    free(stream.buffer);
+    free(buffer);
 
     return 0;
-}
-
-
-char get_stream_char(Stream *stream) {
-    return *(stream -> buffer + stream -> offset);
-}
-
-
-Node *read_node(Stream *stream) {
-    Node *node = (Node *) calloc(1, sizeof(Node));
-
-    if (get_stream_char(stream) == '(') // first ( check
-        stream -> offset++;
-    else 
-        return nullptr;
-
-    if (get_stream_char(stream) == '(') { // operator expression
-        node -> type = NODE_TYPES::TYPE_OP;
-
-        node -> left = read_node(stream);
-
-        if (!node -> left) return nullptr;
-
-        node -> value.op = chr2op(get_stream_char(stream));
-
-        stream -> offset++;
-
-        node -> right = read_node(stream);
-
-        if (!node -> right) return nullptr;
-
-        if (node -> value.op == OP_ADD || node -> value.op == OP_MUL) {
-            if (node -> right -> type == NODE_TYPES::TYPE_VAR) {
-                Node *swap = node -> right;
-                node -> right = node -> left;
-                node -> left = swap;
-            }
-        }
-    }
-
-    else { // static expresssion
-        if (isalpha(get_stream_char(stream))) {
-            node -> type = NODE_TYPES::TYPE_VAR;
-
-            node -> value.var = get_stream_char(stream);
-
-            stream -> offset++; // skip variable
-        }
-        else {
-            node -> type = NODE_TYPES::TYPE_NUM;
-
-            int n = 0;
-            sscanf(stream -> buffer + stream -> offset, "%lg%n", &node -> value.dbl, &n);
-
-            stream -> offset += n; // skip number
-        }
-    }
-
-    stream -> offset++; // closing )
-
-    return node;
 }
 
 
@@ -174,4 +127,126 @@ void write_node(Node *node, FILE *stream, int shift) {
         fprintf(stream, "%*s}", shift, "");
     else
         fprintf(stream, "}");
+}
+
+
+Node *getG(const char *str) {
+    s = str;
+    
+    Node *value = getE();
+
+    assert(*s == '\0' && "No \0 at the end of expression!");
+
+    return value;
+}
+
+
+Node *getE() {
+    Node *value = getT();
+
+    if (*s == '+' || *s == '-') {
+        char op = *s; 
+
+        s++;
+        Node *tmp = getE();
+
+        if (op == '+') return Add(value, tmp);
+        else return Sub(value, tmp);
+    }
+    else
+        return value;
+}
+
+
+Node *getT() {
+    Node *value = getD();
+
+    if (*s == '*' || *s == '/') {
+        char op = *s; 
+
+        s++;
+        Node *tmp = getT();
+
+        if (op == '*') return Mul(value, tmp);
+        else return Div(value, tmp);
+    }
+    else
+        return value;
+}
+
+
+Node *getD() {
+    Node *value = getU();
+
+    if (*s == '^') {
+        s++;
+        Node *tmp = getD();
+
+        return Pow(value, tmp);
+    }
+
+    return value;
+}
+
+
+Node *getU() {
+    if (strncmp(s, "sin", 3) == 0) {
+        s+=3;
+        return Sin(getP());
+    }
+    else if (strncmp(s, "cos", 3) == 0) {
+        s+=3;
+        return Cos(getP());
+    }
+    else if (strncmp(s, "ln", 2) == 0) {
+        s+=2;
+        return Ln(getP());
+    }
+    else return getP();
+}
+
+
+Node *getP() {
+    Node *value = {};
+
+    if (*s == '(') {
+        s++;
+        value = getE();
+
+        assert(*s == ')' && "No closing bracket!");
+
+        s++;
+    }
+    else if ((value = getV())) ;
+    else value = getN();
+    
+    return value;
+}
+
+
+Node *getV() {
+    NodeValue value = {};
+    
+    if (isalpha(*s)) {
+        value.var = *s;
+        s++;
+    }
+    else
+        return nullptr;
+
+    return create_node(TYPE_VAR, value);
+}
+
+
+Node *getN() {
+    Node *value = create_num(0.0);
+
+    int read = 0;
+    sscanf(s, "%lg%n", &value -> value.dbl, &read);
+
+    s += read;
+
+    assert(read && "No number found!");
+
+    return value;
 }
