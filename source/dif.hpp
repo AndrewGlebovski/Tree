@@ -20,3 +20,6 @@ void optimize(Node *node);
  * \return Function value
 */
 double calc_value(const Node *node, double x);
+
+
+void create_derivative_doc(Tree *tree, int order, double point);

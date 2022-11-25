@@ -23,7 +23,7 @@ run: $(addprefix $(BIN_DIR)/, main.o tree.o io.o dif.o)
 
 
 # Предварительная сборка main.cpp
-$(BIN_DIR)/main.o: $(addprefix $(SRC_DIR)/, main.cpp tree.hpp)
+$(BIN_DIR)/main.o: $(addprefix $(SRC_DIR)/, main.cpp tree.hpp io.hpp dif.hpp)
 	$(COMPILER) $(FLAGS) -c $< -o $@
 
 
@@ -43,7 +43,7 @@ $(BIN_DIR)/log.o: $(addprefix $(SRC_DIR)/, log.cpp log.hpp tree.hpp)
 
 
 # Предварительная сборка dif.cpp
-$(BIN_DIR)/dif.o: $(addprefix $(SRC_DIR)/, dif.cpp dif.hpp)
+$(BIN_DIR)/dif.o: $(addprefix $(SRC_DIR)/, dif.cpp dif.hpp tree.hpp)
 	$(COMPILER) $(FLAGS) -c $< -o $@
 
 

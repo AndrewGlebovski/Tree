@@ -17,6 +17,17 @@ Node *create_num(double num);
 Node *create_copy(const Node *node);
 
 
+void copy_node(Node *origin, Node *destination);
+
+
+void print_function(Node *node, FILE *file);
+
+
+void convert_to_latex(Node *node, FILE *file);
+
+
+
+
 Node *create_num(double num) {
     NodeValue value = {0};
     value.dbl = num;
@@ -63,7 +74,7 @@ Node *diff(const Node *node) {
                 case OPERATORS::OP_ADD:
                     return Add(dL, dR);
                 case OPERATORS::OP_SUB:
-                    return Add(dL, dR);
+                    return Sub(dL, dR);
                 case OPERATORS::OP_MUL:
                     return Add(Mul(dL, R), Mul(dR, L));
                 case OPERATORS::OP_DIV:
@@ -212,4 +223,100 @@ double calc_value(const Node *node, double x) {
             }
         default: return 0.0;
     }
+}
+
+
+void create_derivative_doc(Tree *tree, int order, double point) {
+    FILE *file = fopen("debug/main.tex", "w");
+
+    fprintf(file, "Сейчас я вам покажу производную этой достаточно сложной функциии\n");
+
+    fprintf(file, "А вот и сама функция:\n");
+    print_function(tree -> root, file);
+    
+    Tree diff_tree = {diff(tree -> root), 0};
+    optimize(diff_tree.root);
+
+    fprintf(file, "А вот и ее первая производная:\n");
+    print_function(diff_tree.root, file);
+
+    fprintf(file, "А вот и ее касательная в точке %lg:\n", point);
+    fprintf(file, "\\begin{center}\n%4s$", "");
+    fprintf(file, "y_{\\text{кас}} = %lg(x - %lg) + %lg", calc_value(diff_tree.root, point), point, calc_value(tree -> root, point));
+    fprintf(file, "$\n\\end{center}\n");
+
+    tree_destructor(&diff_tree);
+
+    fclose(file);
+}
+
+
+void print_function(Node *node, FILE *file) {
+    fprintf(file, "\\begin{center}\n%4s$", "");
+    convert_to_latex(node, file);
+    fprintf(file, "$\n\\end{center}\n");
+}
+
+
+int is_equal(double a, double b) {
+    return fabs(a - b) < 1e-5;
+}
+
+
+const double _EXP = 2.71828, _PI = 3.14159;
+
+
+void convert_to_latex(Node *node, FILE *file) {
+    if (!node) return;
+
+    fputc('{', file);
+
+    switch (node -> type) {
+        case TYPE_NUM:
+            if (is_equal(node -> value.dbl, _PI))
+                fprintf(file, "\\Pi");
+            else if (is_equal(node -> value.dbl, _EXP))
+                fprintf(file, "e");
+            else
+                fprintf(file, "%lg", node -> value.dbl);
+            break;
+        case TYPE_VAR: fprintf(file, "%c", node -> value.var); break;
+        case TYPE_OP: 
+            fputc('(', file);
+            switch (node -> value.op) {
+                case OPERATORS::OP_LOG:
+                    fprintf(file, "log_");
+                    convert_to_latex(node -> left, file);
+                    fprintf(file, "^");
+                    convert_to_latex(node -> right, file);
+                    break;
+                case OPERATORS::OP_SIN:
+                    fprintf(file, "sin");
+                    convert_to_latex(node -> right, file);
+                    break;
+                case OPERATORS::OP_COS:
+                    fprintf(file, "cos");
+                    convert_to_latex(node -> left, file);
+                    break;
+                case OPERATORS::OP_MUL:
+                    convert_to_latex(node -> left, file);
+                    // fprintf(file, "\\dot");
+                    convert_to_latex(node -> right, file);
+                    break;
+                case OPERATORS::OP_DIV:
+                    fprintf(file, "\\frac");
+                    convert_to_latex(node -> left, file);
+                    convert_to_latex(node -> right, file);
+                    break;
+                default:
+                    convert_to_latex(node -> left, file);
+                    fprintf(file, "%s", op2str(node -> value.op));
+                    convert_to_latex(node -> right, file);
+                    break;
+            }
+            fputc(')', file);
+        default: break;
+    }
+
+    fputc('}', file);
 }
