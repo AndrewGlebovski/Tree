@@ -12,17 +12,14 @@
 
 
 
-Node *getG(const char *str);
-Node *getE();         ///< E::=T{[+-]T}*
-Node *getT();         ///< T::=D{[*/]D}*
-Node *getD();         ///< D::=U{'^'U}*
-Node *getU();         ///< U::=['-''sin''cos''ln']P|P
-Node *getP();         ///< P::='('E')'|N
-Node *getV();
-Node *getN();         ///< N::=['0'-'9']
-
-
-const char *s = nullptr;
+Node *getG(const char *str);        ///< G::=E'\0'
+Node *getE(const char **s);         ///< E::=T{[+-]T}*
+Node *getT(const char **s);         ///< T::=D{[*/]D}*
+Node *getD(const char **s);         ///< D::=U{'^'U}*
+Node *getU(const char **s);         ///< U::=['-''sin''cos''ln']P|P
+Node *getP(const char **s);         ///< P::='('E')'|V|N
+Node *getV(const char **s);         ///< V::=['a'-'z''A'-'Z']
+Node *getN(const char **s);         ///< N::=['0'-'9']+
 
 
 /**
@@ -112,9 +109,9 @@ void write_node(Node *node, FILE *stream, int shift) {
 
 
 Node *getG(const char *str) {
-    s = str;
+    const char *s = str;
     
-    Node *value = getE();
+    Node *value = getE(&s);
 
     assert(*s == '\0' && "No \0 at the end of expression!");
 
@@ -122,14 +119,14 @@ Node *getG(const char *str) {
 }
 
 
-Node *getE() {
-    Node *value = getT();
+Node *getE(const char **s) {
+    Node *value = getT(s);
 
-    if (*s == '+' || *s == '-') {
-        char op = *s; 
+    if (**s == '+' || **s == '-') {
+        char op = **s; 
 
-        s++;
-        Node *tmp = getE();
+        *s += 1;
+        Node *tmp = getE(s);
 
         if (op == '+') return Add(value, tmp);
         else return Sub(value, tmp);
@@ -139,14 +136,14 @@ Node *getE() {
 }
 
 
-Node *getT() {
-    Node *value = getD();
+Node *getT(const char **s) {
+    Node *value = getD(s);
 
-    if (*s == '*' || *s == '/') {
-        char op = *s; 
+    if (**s == '*' || **s == '/') {
+        char op = **s; 
 
-        s++;
-        Node *tmp = getT();
+        *s += 1;
+        Node *tmp = getT(s);
 
         if (op == '*') return Mul(value, tmp);
         else return Div(value, tmp);
@@ -156,12 +153,12 @@ Node *getT() {
 }
 
 
-Node *getD() {
-    Node *value = getU();
+Node *getD(const char **s) {
+    Node *value = getU(s);
 
-    if (*s == '^') {
-        s++;
-        Node *tmp = getD();
+    if (**s == '^') {
+        *s += 1;
+        Node *tmp = getD(s);
 
         return Pow(value, tmp);
     }
@@ -170,47 +167,47 @@ Node *getD() {
 }
 
 
-Node *getU() {
-    if (strncmp(s, "sin", 3) == 0) {
-        s+=3;
-        return Sin(getP());
+Node *getU(const char **s) {
+    if (strncmp(*s, "sin", 3) == 0) {
+        *s += 3;
+        return Sin(getP(s));
     }
-    else if (strncmp(s, "cos", 3) == 0) {
-        s+=3;
-        return Cos(getP());
+    else if (strncmp(*s, "cos", 3) == 0) {
+        *s += 3;
+        return Cos(getP(s));
     }
-    else if (strncmp(s, "ln", 2) == 0) {
-        s+=2;
-        return Ln(getP());
+    else if (strncmp(*s, "ln", 2) == 0) {
+        *s += 2;
+        return Ln(getP(s));
     }
-    else return getP();
+    else return getP(s);
 }
 
 
-Node *getP() {
+Node *getP(const char **s) {
     Node *value = {};
 
-    if (*s == '(') {
-        s++;
-        value = getE();
+    if (**s == '(') {
+        *s += 1;
+        value = getE(s);
 
-        assert(*s == ')' && "No closing bracket!");
+        assert(**s == ')' && "No closing bracket!");
 
-        s++;
+        *s += 1;
     }
-    else if ((value = getV())) ;
-    else value = getN();
+    else if ((value = getV(s))) ;
+    else value = getN(s);
     
     return value;
 }
 
 
-Node *getV() {
+Node *getV(const char **s) {
     NodeValue value = {};
     
-    if (isalpha(*s)) {
-        value.var = *s;
-        s++;
+    if (isalpha(**s)) {
+        value.var = **s;
+        *s += 1;
     }
     else
         return nullptr;
@@ -219,13 +216,13 @@ Node *getV() {
 }
 
 
-Node *getN() {
+Node *getN(const char **s) {
     Node *value = create_num(0.0);
 
     int read = 0;
-    sscanf(s, "%lg%n", &value -> value.dbl, &read);
+    sscanf(*s, "%lg%n", &value -> value.dbl, &read);
 
-    s += read;
+    *s += read;
 
     assert(read && "No number found!");
 
