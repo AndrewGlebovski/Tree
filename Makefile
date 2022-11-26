@@ -43,7 +43,7 @@ $(BIN_DIR)/log.o: $(addprefix $(SRC_DIR)/, log.cpp log.hpp tree.hpp)
 
 
 # Предварительная сборка dif.cpp
-$(BIN_DIR)/dif.o: $(addprefix $(SRC_DIR)/, dif.cpp dif.hpp tree.hpp dsl.hpp)
+$(BIN_DIR)/dif.o: $(addprefix $(SRC_DIR)/, dif.cpp dif.hpp tree.hpp dsl.hpp gen.hpp)
 	$(COMPILER) $(FLAGS) -c $< -o $@
 
 

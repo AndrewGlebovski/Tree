@@ -5,17 +5,15 @@ typedef enum {
 } ERROR_CODES;
 
 
+#define DEF_GEN(op, ...)            \
+    OP_##op,                        \
+
 typedef enum {
     OP_ERR = 0,
-    OP_ADD = 1,
-    OP_SUB = 2,
-    OP_MUL = 3,
-    OP_DIV = 4,
-    OP_POW = 5,
-    OP_LOG = 6,
-    OP_SIN = 7,
-    OP_COS = 8,
+    #include "gen.hpp"
 } OPERATORS;
+
+#undef DEF_GEN
 
 
 typedef enum {
