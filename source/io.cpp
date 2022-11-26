@@ -7,26 +7,7 @@
 #include <assert.h>
 #include "tree.hpp"
 #include "io.hpp"
-
-
-const double _EXP = 2.71828, _PI = 3.14159;
-
-
-Node *create_num(double num);
-
-
-Node *create_copy(const Node *node);
-
-
-#define Add(left, right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_ADD}, left, right)
-#define Sub(left, right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_SUB}, left, right)
-#define Mul(left, right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_MUL}, left, right)
-#define Div(left, right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_DIV}, left, right)
-#define Pow(left, right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_POW}, left, right)
-#define Log(left, right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_LOG}, left, right)
-#define Sin(right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_SIN}, nullptr, right)
-#define Cos(right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_COS}, nullptr, right)
-#define Ln(right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_LOG}, create_num(_EXP), right)
+#include "dsl.hpp"
 
 
 

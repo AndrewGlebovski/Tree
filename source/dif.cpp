@@ -4,17 +4,7 @@
 #include <ctype.h>
 #include "tree.hpp"
 #include "dif.hpp"
-
-
-/**
- * \brief Shortcut for creating numeric type node
- * \param [in] num Node will be init with this value
- * \return New node
-*/
-Node *create_num(double num);
-
-
-Node *create_copy(const Node *node);
+#include "dsl.hpp"
 
 
 void copy_node(Node *origin, Node *destination);
@@ -24,42 +14,6 @@ void print_function(Node *node, FILE *file);
 
 
 void convert_to_latex(Node *node, FILE *file);
-
-
-
-
-Node *create_num(double num) {
-    NodeValue value = {0};
-    value.dbl = num;
-    return create_node(NODE_TYPES::TYPE_NUM, value, nullptr, nullptr);
-}
-
-
-Node *create_copy(const Node *node) {
-    if (!node) return nullptr;
-    
-    return create_node(node -> type, node -> value, create_copy(node -> left), create_copy(node -> right));
-}
-
-#define L create_copy(node -> left)
-#define R create_copy(node -> right)
-
-
-#define dL diff(node -> left)
-#define dR diff(node -> right)
-
-
-#define Add(left, right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_ADD}, left, right)
-#define Sub(left, right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_SUB}, left, right)
-#define Mul(left, right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_MUL}, left, right)
-#define Div(left, right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_DIV}, left, right)
-#define Pow(left, right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_POW}, left, right)
-#define Log(left, right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_LOG}, left, right)
-#define Sin(right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_SIN}, nullptr, right)
-#define Cos(right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_COS}, nullptr, right)
-#define Ln(right) create_node(NODE_TYPES::TYPE_OP, {OPERATORS::OP_LOG}, create_num(exp(1)), right)
-
-#define IS_TYPE(_node, _type) _node -> type == TYPE_##_type
 
 
 Node *diff(const Node *node) {
@@ -100,10 +54,6 @@ Node *diff(const Node *node) {
     }
 }
 
-
-#define IS_OP(_op) node -> type == NODE_TYPES::TYPE_OP && node -> value.op == OP_##_op
-#define IS_NUM(_child, _num) (node -> _child -> type == NODE_TYPES::TYPE_NUM && fabs(node -> _child -> value.dbl - _num) < 1e-8)
-#define FREE(ptr) free(ptr); ptr = nullptr
 
 void copy_node(Node *origin, Node *destination) {
     destination -> type = origin -> type;
@@ -264,14 +214,6 @@ void print_function(Node *node, FILE *file) {
     convert_to_latex(node, file);
     fprintf(file, "$\n\\end{center}\n");
 }
-
-
-int is_equal(double a, double b) {
-    return fabs(a - b) < 1e-5;
-}
-
-
-const double _EXP = 2.71828, _PI = 3.14159;
 
 
 void convert_to_latex(Node *node, FILE *file) {

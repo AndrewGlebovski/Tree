@@ -18,7 +18,7 @@ all: run
 
 
 # Завершает сборку
-run: $(addprefix $(BIN_DIR)/, main.o tree.o io.o dif.o)
+run: $(addprefix $(BIN_DIR)/, main.o tree.o io.o dif.o dsl.o)
 	$(COMPILER) $^ -o run.exe
 
 
@@ -33,7 +33,7 @@ $(BIN_DIR)/tree.o: $(addprefix $(SRC_DIR)/, tree.cpp tree.hpp)
 
 
 # Предварительная сборка io.cpp
-$(BIN_DIR)/io.o: $(addprefix $(SRC_DIR)/, io.cpp io.hpp tree.hpp)
+$(BIN_DIR)/io.o: $(addprefix $(SRC_DIR)/, io.cpp io.hpp tree.hpp dsl.hpp)
 	$(COMPILER) $(FLAGS) -c $< -o $@
 
 
@@ -43,7 +43,12 @@ $(BIN_DIR)/log.o: $(addprefix $(SRC_DIR)/, log.cpp log.hpp tree.hpp)
 
 
 # Предварительная сборка dif.cpp
-$(BIN_DIR)/dif.o: $(addprefix $(SRC_DIR)/, dif.cpp dif.hpp tree.hpp)
+$(BIN_DIR)/dif.o: $(addprefix $(SRC_DIR)/, dif.cpp dif.hpp tree.hpp dsl.hpp)
+	$(COMPILER) $(FLAGS) -c $< -o $@
+
+
+# Предварительная сборка dsl.cpp
+$(BIN_DIR)/dsl.o: $(addprefix $(SRC_DIR)/, dsl.cpp dsl.hpp tree.hpp)
 	$(COMPILER) $(FLAGS) -c $< -o $@
 
 
