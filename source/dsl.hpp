@@ -45,8 +45,8 @@ Node *create_copy(const Node *node);
 #define L create_copy(node -> left)
 #define R create_copy(node -> right)
 
-#define dL diff(node -> left)
-#define dR diff(node -> right)
+#define dL diff(node -> left, file)
+#define dR diff(node -> right, file)
 
 #define IS_TYPE(_node, _type) _node -> type == TYPE_##_type
 

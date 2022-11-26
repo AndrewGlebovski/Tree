@@ -17,8 +17,6 @@ int main() {
     int order = 0;
     printf("Enter derivative order: ");
     scanf("%i", &order);
-
-    optimize(tree.root);
     
     create_derivative_doc(&tree, order, point);
     

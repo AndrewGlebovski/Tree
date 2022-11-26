@@ -7,13 +7,63 @@
 #include "dsl.hpp"
 
 
+///Copies origin parameters in destination and then destroys the origin
 void copy_node(Node *origin, Node *destination);
 
 
-void print_function(Node *node, FILE *file);
+/// Prints epxression with center alignment in LaTex style to file
+void print_function(const Node *node, FILE *file);
 
 
-void convert_to_latex(Node *node, FILE *file);
+/// Prints epxression in LaTex style to output file
+void convert_to_latex(const Node *node, FILE *file);
+
+
+#define PRINT(...) fprintf(file, __VA_ARGS__)
+
+
+#define DEF_GEN(op, create_node, ...)               \
+    case OP_##op:                                   \
+        result = create_node;                       \
+        break;
+
+
+Node *diff(const Node *node, FILE *file) {
+    Node *result = nullptr;
+
+    switch(node -> type) {
+        case NODE_TYPES::TYPE_NUM:
+            result = create_num(0);
+            break;
+        case NODE_TYPES::TYPE_VAR:
+            if (tolower(node -> value.var) == 'x') result = create_num(1);
+            else result = create_num(0);
+            break;
+        case NODE_TYPES::TYPE_OP:
+            switch (node -> value.op) {
+                #include "gen.hpp"
+                default: 
+                    return nullptr;
+            }
+            break;
+        default:
+            return nullptr;
+    }
+
+    PRINT("Кому неочевидно, что это так, пусть первый кинет в меня камень\n");
+
+    PRINT("\\begin{center}\n%4s$", "");
+    convert_to_latex(node, file);
+
+    PRINT("\' = ");
+
+    convert_to_latex(result, file);
+    PRINT("$\n\\end{center}\n");
+
+    return result;
+}
+
+#undef DEF_GEN
 
 
 #define TEMPLATE(num_child, origin_child, num)      \
@@ -22,6 +72,7 @@ if (IS_NUM(num_child, num)) {                       \
     copy_node(node -> origin_child, node);          \
 }
 
+
 #define CONST_CHECK()                                               \
 if (IS_TYPE(node -> left, NUM) && IS_TYPE(node -> right, NUM)) {    \
     node -> value.dbl = calc_value(node, 1.0);                      \
@@ -29,31 +80,6 @@ if (IS_TYPE(node -> left, NUM) && IS_TYPE(node -> right, NUM)) {    \
     FREE(node -> left);                                             \
     FREE(node -> right);                                            \
 }
-
-#define DEF_GEN(op, create_node, ...)               \
-    case OP_##op:                                   \
-        return create_node;
-
-
-Node *diff(const Node *node) {
-    switch(node -> type) {
-        case NODE_TYPES::TYPE_NUM:
-            return create_num(0);
-        case NODE_TYPES::TYPE_VAR:
-            if (tolower(node -> value.var) == 'x') return create_num(1);
-            else return create_num(0);
-        case NODE_TYPES::TYPE_OP:
-            switch (node -> value.op) {
-                #include "gen.hpp"
-                default: 
-                    return nullptr;
-            }
-        default:
-            return nullptr;
-    }
-}
-
-#undef DEF_GEN
 
 
 void copy_node(Node *origin, Node *destination) {
@@ -65,24 +91,33 @@ void copy_node(Node *origin, Node *destination) {
     free(origin);
 }
 
+
 #define DEF_GEN(op, create_node, opti_node, ...)    \
 case OP_##op:                                       \
     opti_node;                                      \
     break;
 
 
-void optimize(Node *node) {
+void optimize(Node *node, FILE *file) {
     if (node -> type != NODE_TYPES::TYPE_OP)
         return;
 
-    if (node -> left) optimize(node -> left);
-    if (node -> right) optimize(node -> right);
+    if (node -> left) optimize(node -> left, file);
+    if (node -> right) optimize(node -> right, file);
+
+    PRINT("Шлеп\n");
+    PRINT("\\begin{center}\n%4s$", "");
+    convert_to_latex(node, file);
 
     switch (node -> value.op) {
         #include "gen.hpp"
         default:
             return;
     }
+
+    PRINT(" = ");
+    convert_to_latex(node, file);
+    PRINT("$\n\\end{center}\n");
 }
 
 #undef DEF_GEN
@@ -110,9 +145,6 @@ double calc_value(const Node *node, double x) {
 #undef DEF_GEN
 
 
-#define PRINT(...) fprintf(file, __VA_ARGS__)
-
-
 void create_derivative_doc(Tree *tree, int order, double point) {
     FILE *file = fopen("debug/main.tex", "w");
 
@@ -120,18 +152,21 @@ void create_derivative_doc(Tree *tree, int order, double point) {
     PRINT("\\usepackage[utf8]{inputenc}\n");
     PRINT("\\usepackage[T2A]{fontenc}\n");
     PRINT("\\usepackage[russian]{babel}\n");
+    PRINT("\\setcounter{secnumdepth}{0}\n"); // отключает нумерацию секций
+
+    PRINT("\\title{Докторская диссертация}\n");
+    PRINT("\\author{Тимофей Абишев, Б05-232}\n");
 
     PRINT("\\begin{document}\n");
+    
+    PRINT("\\maketitle\n");
+    PRINT("\\tableofcontents\n");
 
-    PRINT("Докторская диссертация\\\\\n");
-
-    PRINT("Функция:\n");
+    PRINT("\\section{Функция}\n");
     print_function(tree -> root, file);
     
-    optimize(tree -> root);
-
-    PRINT("Оптимизированная функция\n");
-    print_function(tree -> root, file);
+    PRINT("\\subsection{Оптимизация}\n");
+    optimize(tree -> root, file);
 
     Tree diff_tree = {tree -> root, 0}, free_queue = {};
 
@@ -140,16 +175,17 @@ void create_derivative_doc(Tree *tree, int order, double point) {
     values[0] = calc_value(tree -> root, point);
 
     for(int i = 1; i <= order; i++) {
-        PRINT("Дифференцируем\n");
-        diff_tree.root = diff(diff_tree.root);
-        print_function(diff_tree.root, file);
+        PRINT("\\section{Взятие производной %i-го порядка}\n", i);
+
+        PRINT("\\subsection{Дифференцирование}\n");
+        diff_tree.root = diff(diff_tree.root, file);
 
         if (free_queue.root) tree_destructor(&free_queue);
 
-        PRINT("Оптимизируем\\\\\n");
-        optimize(diff_tree.root);
+        PRINT("\\subsection{Оптимизация}\n");
+        optimize(diff_tree.root, file);
 
-        PRINT("А вот и производная %i-го порядка:\n", i);
+        PRINT("\\subsection{Производная %i-го порядка}\n", i);
         print_function(diff_tree.root, file);
 
         values[i] = calc_value(diff_tree.root, point);
@@ -159,12 +195,12 @@ void create_derivative_doc(Tree *tree, int order, double point) {
 
     tree_destructor(&free_queue);
 
-    PRINT("А вот и ее касательная в точке %lg:\n", point);
+    PRINT("\\section{Касательная в точке %lg}\n", point);
     PRINT("\\begin{center}\n%4s$", "");
     PRINT("y = %lg(x - %lg) + %lg", values[1], point, values[0]);
     PRINT("$\n\\end{center}\n");
     
-    PRINT("Формула Тейлора, куда же без нее:\\\\\n");
+    PRINT("\\section{Формула Тейлора, куда же без нее}\n");
     PRINT("\\begin{center}\n%4s$y = ", "");
     for(int i = 0; i <= order; i++)
         PRINT("\\frac{%lg}{%i!}(x - %lg)^%i + ", values[i], i, point, i);
@@ -178,7 +214,7 @@ void create_derivative_doc(Tree *tree, int order, double point) {
 }
 
 
-void print_function(Node *node, FILE *file) {
+void print_function(const Node *node, FILE *file) {
     PRINT("\\begin{center}\n%4s$y = ", "");
     convert_to_latex(node, file);
     PRINT("$\n\\end{center}\n");
@@ -191,7 +227,7 @@ void print_function(Node *node, FILE *file) {
         break;
 
 
-void convert_to_latex(Node *node, FILE *file) {
+void convert_to_latex(const Node *node, FILE *file) {
     if (!node) return;
 
     fputc('{', file);
