@@ -32,7 +32,24 @@ int generate_file(Tree *tree, FILE *file) {
 
 
 void write_record(FILE *file, Node *node) {
-    fprintf(file, "    \"e%p\"[label=\"{<index> %-p | %i}\"];\n", node, node, node -> data);
+    fprintf(file, "    \"e%p\"[label=\"{<index> %-p | {<type> %s | <value> ", node, node,
+        (node -> type == TYPE_OP)? "OP" : ((node -> type == TYPE_NUM)? "NUM" : "VAR"));
+
+    switch (node -> type) {
+        case NODE_TYPES::TYPE_OP:
+            fprintf(file, "%s", op2str(node -> value.op));
+            break;
+        case NODE_TYPES::TYPE_NUM:
+            fprintf(file, "%g", node -> value.dbl);
+            break;
+        case NODE_TYPES::TYPE_VAR:
+            fprintf(file, "%c", node -> value.var);
+            break;
+        default:
+            fprintf(file, "@");
+    }
+
+    fprintf(file, "}}\"];\n");
 
     if (node -> left) {
         fprintf(file, "    \"e%p\" -> \"e%p\";\n", node, node -> left);
@@ -87,7 +104,8 @@ int graphic_dump(Tree *tree, FILE *log) {
 
     generate_image(dot, img);
 
-    fprintf(log, "<img src=\"" IMG_FILENAME "%i.png\" alt=\"WTF\" style=\"width: auto\">\n", dump_index);
+    if (log)
+        fprintf(log, "<img src=\"" IMG_FILENAME "%i.png\" alt=\"WTF\" style=\"width: auto\">\n", dump_index);
 
     dump_index++;
 

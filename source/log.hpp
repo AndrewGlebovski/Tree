@@ -39,12 +39,13 @@ int generate_image(const char *input, const char *output);
 int show_image(const char *filepath);
 
 
+#ifdef HTML_LOG
+
 /**
  * \brief Generates numerated dumps and log file in html format
  * \param [out] log   Log file output
  * \param [in]  tree  Tree to print
  * \param [in]  title Current dump title
- * \return Non zero value means error
 */
 #define DUMP_IT(log, tree, title, ...)                                                 \
 do {                                                                                   \
@@ -62,3 +63,14 @@ do {                                                                            
         fprintf(log, "<hr>\n");                                                        \
     }                                                                                  \
 } while(0)
+
+#else
+
+/**
+ * \brief Generates numerated dumps
+ * \param [in]  tree  Tree to print
+*/
+#define DUMP_IT(tree, ...)                                                             \
+graphic_dump(tree, nullptr)
+
+#endif
