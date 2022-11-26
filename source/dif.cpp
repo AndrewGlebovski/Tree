@@ -22,7 +22,7 @@ if (IS_NUM(num_child, num)) {                       \
     copy_node(node -> origin_child, node);          \
 }
 
-#define CONST_CHECK()                                                   \
+#define CONST_CHECK()                                               \
 if (IS_TYPE(node -> left, NUM) && IS_TYPE(node -> right, NUM)) {    \
     node -> value.dbl = calc_value(node, 1.0);                      \
     node -> type = TYPE_NUM;                                        \
@@ -88,25 +88,26 @@ void optimize(Node *node) {
 #undef DEF_GEN
 
 
+#define DEF_GEN(op, create_node, opti_node, calc_node, ...)    \
+    case OP_##op:                                              \
+        return calc_node;                                      \
+
+
 double calc_value(const Node *node, double x) {
     switch (node -> type) {
         case TYPE_NUM: return node -> value.dbl;
         case TYPE_VAR: return x;
         case TYPE_OP:
             switch (node -> value.op) {
-                case OPERATORS::OP_ADD: return calc_value(node -> left, x) + calc_value(node -> right, x);
-                case OPERATORS::OP_SUB: return calc_value(node -> left, x) - calc_value(node -> right, x);
-                case OPERATORS::OP_MUL: return calc_value(node -> left, x) * calc_value(node -> right, x);
-                case OPERATORS::OP_DIV: return calc_value(node -> left, x) / calc_value(node -> right, x);
-                case OPERATORS::OP_POW: return pow(calc_value(node -> left, x), calc_value(node -> right, x));
-                case OPERATORS::OP_LOG: return log(calc_value(node -> right, x)) / log(calc_value(node -> left, x));
-                case OPERATORS::OP_SIN: return sin(calc_value(node -> right, x));
-                case OPERATORS::OP_COS: return cos(calc_value(node -> right, x));
-                default: return 0.0;
+                #include "gen.hpp"
+                default: 
+                    return 0.0;
             }
         default: return 0.0;
     }
 }
+
+#undef DEF_GEN
 
 
 void create_derivative_doc(Tree *tree, int order, double point) {
