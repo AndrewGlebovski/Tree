@@ -4,14 +4,22 @@ DEF_GEN(ADD, Add(dL, dR),
     else TEMPLATE(right, left, 0)
     else TEMPLATE(left, right, 0),
 
-    calc_value(node -> left, x) + calc_value(node -> right, x)
+    calc_value(node -> left, x) + calc_value(node -> right, x),
+
+    convert_to_latex(node -> left, file);
+    PRINT("+");
+    convert_to_latex(node -> right, file);
 )
 DEF_GEN(SUB, Sub(dL, dR),
 
     CONST_CHECK()
     else TEMPLATE(left, right, 0),
 
-    calc_value(node -> left, x) - calc_value(node -> right, x)
+    calc_value(node -> left, x) - calc_value(node -> right, x),
+
+    convert_to_latex(node -> left, file);
+    PRINT("-");
+    convert_to_latex(node -> right, file);
 )
 DEF_GEN(MUL, Add(Mul(dL, R), Mul(dR, L)),
 
@@ -26,7 +34,10 @@ DEF_GEN(MUL, Add(Mul(dL, R), Mul(dR, L)),
     else TEMPLATE(right, left, 1)
     else TEMPLATE(left, right, 1),
 
-    calc_value(node -> left, x) * calc_value(node -> right, x)
+    calc_value(node -> left, x) * calc_value(node -> right, x),
+
+    convert_to_latex(node -> left, file);
+    convert_to_latex(node -> right, file);
 )
 DEF_GEN(DIV, Div(Sub(Mul(dL, R), Mul(dR, L)), Mul(R, R)), 
 
@@ -42,7 +53,11 @@ DEF_GEN(DIV, Div(Sub(Mul(dL, R), Mul(dR, L)), Mul(R, R)),
         }
     },
 
-    calc_value(node -> left, x) / calc_value(node -> right, x)
+    calc_value(node -> left, x) / calc_value(node -> right, x),
+
+    PRINT("\\frac");
+    convert_to_latex(node -> left, file);
+    convert_to_latex(node -> right, file);
 )
 DEF_GEN(POW, // Лютейший говнокод я сам знаю
     ((IS_TYPE(node -> left, VAR) || IS_TYPE(node -> left, OP)) && (IS_TYPE(node -> right, VAR) || IS_TYPE(node -> right, OP))) ?
@@ -62,13 +77,21 @@ DEF_GEN(POW, // Лютейший говнокод я сам знаю
     }
     else TEMPLATE(right, left, 1),
 
-    pow(calc_value(node -> left, x), calc_value(node -> right, x))
+    pow(calc_value(node -> left, x), calc_value(node -> right, x)),
+
+    convert_to_latex(node -> left, file);
+    PRINT("^");
+    convert_to_latex(node -> right, file);
 )
 DEF_GEN(LOG, Div(dR, Mul(R, Ln(L))),
 
     CONST_CHECK(),
 
-    log(calc_value(node -> right, x)) / log(calc_value(node -> left, x))
+    log(calc_value(node -> right, x)) / log(calc_value(node -> left, x)),
+
+    PRINT("\\log_");
+    convert_to_latex(node -> left, file);
+    convert_to_latex(node -> right, file);
 )
 DEF_GEN(SIN, Mul(Cos(R), dR),
 
@@ -79,7 +102,10 @@ DEF_GEN(SIN, Mul(Cos(R), dR),
         FREE(node -> right);
     },
 
-    sin(calc_value(node -> right, x))
+    sin(calc_value(node -> right, x)),
+
+    PRINT("\\sin");
+    convert_to_latex(node -> right, file);
 )
 DEF_GEN(COS, Mul(Mul(create_num(-1), Sin(R)), dR),
 
@@ -90,5 +116,8 @@ DEF_GEN(COS, Mul(Mul(create_num(-1), Sin(R)), dR),
         FREE(node -> right);
     },
 
-    cos(calc_value(node -> right, x))
+    cos(calc_value(node -> right, x)),
+
+    PRINT("\\cos");
+    convert_to_latex(node -> right, file);
 )

@@ -90,7 +90,7 @@ void optimize(Node *node) {
 
 #define DEF_GEN(op, create_node, opti_node, calc_node, ...)    \
     case OP_##op:                                              \
-        return calc_node;                                      \
+        return calc_node;
 
 
 double calc_value(const Node *node, double x) {
@@ -110,36 +110,85 @@ double calc_value(const Node *node, double x) {
 #undef DEF_GEN
 
 
+#define PRINT(...) fprintf(file, __VA_ARGS__)
+
+
 void create_derivative_doc(Tree *tree, int order, double point) {
     FILE *file = fopen("debug/main.tex", "w");
 
-    fprintf(file, "Сейчас я вам покажу производную этой достаточно сложной функциии\n");
+    PRINT("\\documentclass[12pt]{article}\n");
+    PRINT("\\usepackage[utf8]{inputenc}\n");
+    PRINT("\\usepackage[T2A]{fontenc}\n");
+    PRINT("\\usepackage[russian]{babel}\n");
 
-    fprintf(file, "А вот и сама функция:\n");
+    PRINT("\\begin{document}\n");
+
+    PRINT("Докторская диссертация\\\\\n");
+
+    PRINT("Функция:\n");
     print_function(tree -> root, file);
     
-    Tree diff_tree = {diff(tree -> root), 0};
-    optimize(diff_tree.root);
+    optimize(tree -> root);
 
-    fprintf(file, "А вот и ее первая производная:\n");
-    print_function(diff_tree.root, file);
+    PRINT("Оптимизированная функция\n");
+    print_function(tree -> root, file);
 
-    fprintf(file, "А вот и ее касательная в точке %lg:\n", point);
-    fprintf(file, "\\begin{center}\n%4s$", "");
-    fprintf(file, "y_{\\text{кас}} = %lg(x - %lg) + %lg", calc_value(diff_tree.root, point), point, calc_value(tree -> root, point));
-    fprintf(file, "$\n\\end{center}\n");
+    Tree diff_tree = {tree -> root, 0}, free_queue = {};
 
-    tree_destructor(&diff_tree);
+    double *values = (double *) calloc(order + 1, sizeof(int));
+
+    values[0] = calc_value(tree -> root, point);
+
+    for(int i = 1; i <= order; i++) {
+        PRINT("Дифференцируем\n");
+        diff_tree.root = diff(diff_tree.root);
+        print_function(diff_tree.root, file);
+
+        if (free_queue.root) tree_destructor(&free_queue);
+
+        PRINT("Оптимизируем\\\\\n");
+        optimize(diff_tree.root);
+
+        PRINT("А вот и производная %i-го порядка:\n", i);
+        print_function(diff_tree.root, file);
+
+        values[i] = calc_value(diff_tree.root, point);
+
+        free_queue = diff_tree;
+    }
+
+    tree_destructor(&free_queue);
+
+    PRINT("А вот и ее касательная в точке %lg:\n", point);
+    PRINT("\\begin{center}\n%4s$", "");
+    PRINT("y = %lg(x - %lg) + %lg", values[1], point, values[0]);
+    PRINT("$\n\\end{center}\n");
+    
+    PRINT("Формула Тейлора, куда же без нее:\\\\\n");
+    PRINT("\\begin{center}\n%4s$y = ", "");
+    for(int i = 0; i <= order; i++)
+        PRINT("\\frac{%lg}{%i!}(x - %lg)^%i + ", values[i], i, point, i);
+    PRINT("o((x - %lg)^%i)$\n\\end{center}\n", point, order);
+
+    PRINT("\\end{document}\n");
+
+    free(values);
 
     fclose(file);
 }
 
 
 void print_function(Node *node, FILE *file) {
-    fprintf(file, "\\begin{center}\n%4s$", "");
+    PRINT("\\begin{center}\n%4s$y = ", "");
     convert_to_latex(node, file);
-    fprintf(file, "$\n\\end{center}\n");
+    PRINT("$\n\\end{center}\n");
 }
+
+
+#define DEF_GEN(op, create_node, opti_node, calc_node, ...)    \
+    case OP_##op:                                              \
+        __VA_ARGS__;                                           \
+        break;
 
 
 void convert_to_latex(Node *node, FILE *file) {
@@ -150,43 +199,20 @@ void convert_to_latex(Node *node, FILE *file) {
     switch (node -> type) {
         case TYPE_NUM:
             if (is_equal(node -> value.dbl, _PI))
-                fprintf(file, "\\Pi");
+                PRINT("\\Pi");
             else if (is_equal(node -> value.dbl, _EXP))
-                fprintf(file, "e");
+                PRINT("e");
             else
-                fprintf(file, "%lg", node -> value.dbl);
+                PRINT("%lg", node -> value.dbl);
             break;
-        case TYPE_VAR: fprintf(file, "%c", node -> value.var); break;
+        case TYPE_VAR: PRINT("%c", node -> value.var); break;
         case TYPE_OP: 
             fputc('(', file);
             switch (node -> value.op) {
-                case OPERATORS::OP_LOG:
-                    fprintf(file, "log_");
-                    convert_to_latex(node -> left, file);
-                    fprintf(file, "^");
-                    convert_to_latex(node -> right, file);
-                    break;
-                case OPERATORS::OP_SIN:
-                    fprintf(file, "sin");
-                    convert_to_latex(node -> right, file);
-                    break;
-                case OPERATORS::OP_COS:
-                    fprintf(file, "cos");
-                    convert_to_latex(node -> left, file);
-                    break;
-                case OPERATORS::OP_MUL:
-                    convert_to_latex(node -> left, file);
-                    // fprintf(file, "\\dot");
-                    convert_to_latex(node -> right, file);
-                    break;
-                case OPERATORS::OP_DIV:
-                    fprintf(file, "\\frac");
-                    convert_to_latex(node -> left, file);
-                    convert_to_latex(node -> right, file);
-                    break;
+                #include "gen.hpp"
                 default:
                     convert_to_latex(node -> left, file);
-                    fprintf(file, "%s", op2str(node -> value.op));
+                    PRINT("%s", op2str(node -> value.op));
                     convert_to_latex(node -> right, file);
                     break;
             }
@@ -196,3 +222,5 @@ void convert_to_latex(Node *node, FILE *file) {
 
     fputc('}', file);
 }
+
+#undef DEF_GEN
