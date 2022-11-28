@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 #include <ctype.h>
 #include "tree.hpp"
 #include "dif.hpp"
@@ -28,7 +29,7 @@ void convert_to_latex(const Node *node, FILE *file);
         break;
 
 
-Node *diff(const Node *node, FILE *file) {
+Node *diff(const Node *node, FILE *file, const char *phrases[], int phrases_size) {
     Node *result = nullptr;
 
     switch(node -> type) {
@@ -49,17 +50,19 @@ Node *diff(const Node *node, FILE *file) {
         default:
             return nullptr;
     }
+    
+    if (file) {
+        PRINT("%s\n", phrases[rand() % phrases_size]);
 
-    PRINT("Кому неочевидно, что это так, пусть первый кинет в меня камень\n");
+        PRINT("\\begin{center}\n%4s$", "");
+        convert_to_latex(node, file);
 
-    PRINT("\\begin{center}\n%4s$", "");
-    convert_to_latex(node, file);
+        PRINT("\' = ");
 
-    PRINT("\' = ");
-
-    convert_to_latex(result, file);
-    PRINT("$\n\\end{center}\n");
-
+        convert_to_latex(result, file);
+        PRINT("$\n\\end{center}\n");
+    }
+    
     return result;
 }
 
@@ -98,16 +101,19 @@ case OP_##op:                                       \
     break;
 
 
-void optimize(Node *node, FILE *file) {
+void optimize(Node *node, FILE *file, const char *phrases[], int phrases_size) {
     if (node -> type != NODE_TYPES::TYPE_OP)
         return;
 
-    if (node -> left) optimize(node -> left, file);
-    if (node -> right) optimize(node -> right, file);
+    if (node -> left) optimize(node -> left, file, phrases, phrases_size);
+    if (node -> right) optimize(node -> right, file, phrases, phrases_size);
 
-    PRINT("Шлеп\n");
-    PRINT("\\begin{center}\n%4s$", "");
-    convert_to_latex(node, file);
+    if (file) {
+        PRINT("%s\n", phrases[rand() % phrases_size]);
+        
+        PRINT("\\begin{center}\n%4s$", "");
+        convert_to_latex(node, file);
+    }
 
     switch (node -> value.op) {
         #include "gen.hpp"
@@ -115,9 +121,11 @@ void optimize(Node *node, FILE *file) {
             return;
     }
 
-    PRINT(" = ");
-    convert_to_latex(node, file);
-    PRINT("$\n\\end{center}\n");
+    if (file) {
+        PRINT(" = ");
+        convert_to_latex(node, file);
+        PRINT("$\n\\end{center}\n");
+    }
 }
 
 #undef DEF_GEN
@@ -146,7 +154,11 @@ double calc_value(const Node *node, double x) {
 
 
 void create_derivative_doc(Tree *tree, int order, double point) {
+    #include "phrases.hpp"
+
     FILE *file = fopen("debug/main.tex", "w");
+
+    srand((unsigned int) time(nullptr));
 
     PRINT("\\documentclass[12pt]{article}\n");
     PRINT("\\usepackage[utf8]{inputenc}\n");
@@ -157,8 +169,8 @@ void create_derivative_doc(Tree *tree, int order, double point) {
 #endif
     PRINT("\\setcounter{secnumdepth}{0}\n"); // отключает нумерацию секций
 
-    PRINT("\\title{Докторская диссертация}\n");
-    PRINT("\\author{Тимофей Абишев, Б05-232}\n");
+    PRINT("\\title{Сборник задач по математическому анализу, том 1, параграф %i, упражнение номер %i}\n", rand()%40, rand()%200);
+    // PRINT("\\author{Тимофей Абишев, Б05-232}\n");
 
     PRINT("\\begin{document}\n");
     
@@ -166,10 +178,8 @@ void create_derivative_doc(Tree *tree, int order, double point) {
     PRINT("\\tableofcontents\n");
 
     PRINT("\\section{Функция}\n");
+    optimize(tree -> root, nullptr, nullptr, 0);
     print_function(tree -> root, file);
-    
-    PRINT("\\subsection{Оптимизация}\n");
-    optimize(tree -> root, file);
 
     Tree diff_tree = {tree -> root, 0}, free_queue = {};
 
@@ -181,12 +191,12 @@ void create_derivative_doc(Tree *tree, int order, double point) {
         PRINT("\\section{Взятие производной %i-го порядка}\n", i);
 
         PRINT("\\subsection{Дифференцирование}\n");
-        diff_tree.root = diff(diff_tree.root, file);
+        diff_tree.root = diff(diff_tree.root, file, diff_phrases, sizeof(diff_phrases) / sizeof(const char *));
 
         if (free_queue.root) tree_destructor(&free_queue);
 
         PRINT("\\subsection{Оптимизация}\n");
-        optimize(diff_tree.root, file);
+        optimize(diff_tree.root, file, opti_phrases, sizeof(opti_phrases) / sizeof(const char *));
 
         PRINT("\\subsection{Производная %i-го порядка}\n", i);
         print_function(diff_tree.root, file);
@@ -198,12 +208,12 @@ void create_derivative_doc(Tree *tree, int order, double point) {
 
     tree_destructor(&free_queue);
 
-    PRINT("\\section{Касательная в точке %lg}\n", point);
+    PRINT("\\section{Где он вас касался? В точке %lg}\n", point);
     PRINT("\\begin{center}\n%4s$", "");
     PRINT("y = %lg(x - %lg) + %lg", values[1], point, values[0]);
     PRINT("$\n\\end{center}\n");
     
-    PRINT("\\section{Формула Тейлора, куда же без нее}\n");
+    PRINT("\\section{Формула Тейлора, куда ж без нее}\n");
     PRINT("\\begin{center}\n%4s$y = ", "");
     for(int i = 0; i <= order; i++)
         PRINT("\\frac{%lg}{%i!}(x - %lg)^%i + ", values[i], i, point, i);
@@ -212,6 +222,7 @@ void create_derivative_doc(Tree *tree, int order, double point) {
 #ifdef FUNC_GRAPH
     create_func_graph(tree, "plot");
 
+    PRINT("\\section{Прекраснейший график}\n");
     PRINT("\\begin{center}\n");
     PRINT("%4s\\includegraphics{plot.png}\n", "");
     PRINT("\\end{center}\n");

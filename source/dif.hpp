@@ -4,7 +4,7 @@
  * \param [out] file Output stream
  * \return New tree
 */
-Node *diff(const Node *node, FILE *file);
+Node *diff(const Node *node, FILE *file, const char *phrases[], int phrases_size);
 
 
 /**
@@ -12,7 +12,7 @@ Node *diff(const Node *node, FILE *file);
  * \param [in]  node Check will start from this branch
  * \param [out] file Output stream
 */
-void optimize(Node *node, FILE *file);
+void optimize(Node *node, FILE *file, const char *phrases[], int phrases_size);
 
 
 /**
