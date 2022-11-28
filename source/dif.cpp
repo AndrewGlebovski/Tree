@@ -152,6 +152,9 @@ void create_derivative_doc(Tree *tree, int order, double point) {
     PRINT("\\usepackage[utf8]{inputenc}\n");
     PRINT("\\usepackage[T2A]{fontenc}\n");
     PRINT("\\usepackage[russian]{babel}\n");
+#ifdef FUNC_GRAPH
+    PRINT("\\usepackage{graphics}\n");
+#endif
     PRINT("\\setcounter{secnumdepth}{0}\n"); // отключает нумерацию секций
 
     PRINT("\\title{Докторская диссертация}\n");
@@ -205,7 +208,15 @@ void create_derivative_doc(Tree *tree, int order, double point) {
     for(int i = 0; i <= order; i++)
         PRINT("\\frac{%lg}{%i!}(x - %lg)^%i + ", values[i], i, point, i);
     PRINT("o((x - %lg)^%i)$\n\\end{center}\n", point, order);
+    
+#ifdef FUNC_GRAPH
+    create_func_graph(tree, "plot");
 
+    PRINT("\\begin{center}\n");
+    PRINT("%4s\\includegraphics{plot.png}\n", "");
+    PRINT("\\end{center}\n");
+#endif
+    
     PRINT("\\end{document}\n");
 
     free(values);
@@ -260,3 +271,23 @@ void convert_to_latex(const Node *node, FILE *file) {
 }
 
 #undef DEF_GEN
+
+
+#ifdef FUNC_GRAPH
+
+void create_func_graph(Tree *tree, const char *filename) {
+    char *cmd = (char *) calloc(1024, sizeof(char));
+    int offset = 0;
+
+    sprintf(cmd, "python source/plot.py %s %lg %n", filename, 0.2, &offset);
+
+    for (double i = -10; i < 9.9; i += 0.2) {
+        int n = 0;
+        sprintf(cmd + offset, "%.3lg %n", calc_value(tree -> root, i), &n);
+        offset += n;
+    }
+
+    system(cmd);
+}
+
+#endif

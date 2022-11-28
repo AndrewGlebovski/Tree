@@ -31,3 +31,17 @@ double calc_value(const Node *node, double x);
  * \brief [in] point Point where calculates value
 */
 void create_derivative_doc(Tree *tree, int order, double point);
+
+
+// #define FUNC_GRAPH Включай только если у тебя есть matplotlib на компе
+
+#ifdef FUNC_GRAPH
+
+/**
+ * \brief Creates function graph on [-10;10]
+ * \param [in] tree     Function to draw
+ * \param [in] filename Image name
+*/
+void create_func_graph(Tree *tree, const char *filname);
+
+#endif

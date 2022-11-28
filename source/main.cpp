@@ -19,7 +19,7 @@ int main() {
     scanf("%i", &order);
     
     create_derivative_doc(&tree, order, point);
-    
+
     tree_destructor(&tree);
 
     printf("Tree!");
