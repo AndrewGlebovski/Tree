@@ -29,6 +29,12 @@ Node *getN(const char **s);         ///< N::=['0'-'9']+
 void write_node(Node *node, FILE *stream, int shift);
 
 
+/**
+ * \brief Removes all spaces from buffer
+ * \param [out] buffer Buffer to remove from
+*/
+void clear_spaces(char *buffer);
+
 
 
 int read_tree(Tree *tree) {
@@ -36,13 +42,25 @@ int read_tree(Tree *tree) {
 
     fgets(buffer, 512, stdin);
 
-    buffer[strlen(buffer) - 1] = '\0';
+    clear_spaces(buffer);
 
     tree -> root = getG(buffer);
 
     free(buffer);
 
     return 0;
+}
+
+
+void clear_spaces(char *buffer) {
+    int read = 0, write = 0;
+
+    for (; buffer[read] != '\0'; read++) {
+        if (!isspace(buffer[read]))
+            buffer[write++] = buffer[read];
+    }
+
+    buffer[write] = '\0';
 }
 
 
