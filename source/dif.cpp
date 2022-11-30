@@ -20,6 +20,14 @@ void print_function(const Node *node, FILE *file);
 void convert_to_latex(const Node *node, FILE *file);
 
 
+/// Prints Taylor series to file in LaTex style
+void print_taylor(FILE *file, int order, double *values, double point);
+
+
+/// Prints tangent line to file in LaTex style 
+void print_tangent(FILE *file, double k, double b, double point);
+
+
 #define PRINT(...) fprintf(file, __VA_ARGS__)
 
 
@@ -153,6 +161,46 @@ double calc_value(const Node *node, double x) {
 #undef DEF_GEN
 
 
+void print_taylor(FILE *file, int order, double *values, double point) {
+    NodeValue value;
+    value.var = 'x';
+
+    Tree func = {};
+    Node *node = create_num(values[0]);
+
+    double fact = 1.0;
+
+    for(int i = 1; i <= order; i++) {
+        node = Add(node, Mul(create_num(values[i] / fact), Pow(Sub(create_node(TYPE_VAR, value), create_num(point)), create_num(i))));
+
+        func.root = node;
+
+        fact *= i;
+    }
+
+    optimize(func.root, nullptr, nullptr, 0);
+
+    print_function(func.root, file);
+
+    tree_destructor(&func);
+}
+
+
+void print_tangent(FILE *file, double k, double b, double point) {
+    NodeValue value;
+    value.var = 'x';
+
+    Tree func = {};
+    func.root = Add(Mul(create_num(k), Sub(create_node(TYPE_VAR, value), create_num(point))), create_num(b));
+
+    optimize(func.root, nullptr, nullptr, 0);
+
+    print_function(func.root, file);
+
+    tree_destructor(&func);
+}
+
+
 void create_derivative_doc(Tree *tree, int order, double point) {
     #include "phrases.hpp"
 
@@ -183,7 +231,7 @@ void create_derivative_doc(Tree *tree, int order, double point) {
 
     Tree diff_tree = {tree -> root, 0}, free_queue = {};
 
-    double *values = (double *) calloc(order + 1, sizeof(int));
+    double *values = (double *) calloc(order + 1, sizeof(double));
 
     values[0] = calc_value(tree -> root, point);
 
@@ -206,18 +254,13 @@ void create_derivative_doc(Tree *tree, int order, double point) {
         free_queue = diff_tree;
     }
 
-    tree_destructor(&free_queue);
+    if (free_queue.root) tree_destructor(&free_queue);
 
     PRINT("\\section{Где он вас касался? В точке %lg}\n", point);
-    PRINT("\\begin{center}\n%4s$", "");
-    PRINT("y = %lg(x - %lg) + %lg", values[1], point, values[0]);
-    PRINT("$\n\\end{center}\n");
+    print_tangent(file, values[1], values[0], point);
     
     PRINT("\\section{Формула Тейлора, куда ж без нее}\n");
-    PRINT("\\begin{center}\n%4s$y = ", "");
-    for(int i = 0; i <= order; i++)
-        PRINT("\\frac{%lg}{%i!}(x - %lg)^%i + ", values[i], i, point, i);
-    PRINT("o((x - %lg)^%i)$\n\\end{center}\n", point, order);
+    print_taylor(file, order, values, point);
     
 #ifdef FUNC_GRAPH
     create_func_graph(tree, "plot");
@@ -228,6 +271,9 @@ void create_derivative_doc(Tree *tree, int order, double point) {
     PRINT("\\end{center}\n");
 #endif
     
+    PRINT("\\section{Источники}\n");
+    PRINT("Это совершенно секретная информация, поэтому я скормил ее Полторашке\n");
+
     PRINT("\\end{document}\n");
 
     free(values);

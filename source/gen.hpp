@@ -13,7 +13,7 @@ DEF_GEN(ADD, Add(dL, dR),
 DEF_GEN(SUB, Sub(dL, dR),
 
     CONST_CHECK()
-    else TEMPLATE(left, right, 0),
+    else TEMPLATE(right, left, 0),
 
     calc_value(node -> left, x) - calc_value(node -> right, x),
 
@@ -68,7 +68,7 @@ DEF_GEN(POW, // Лютейший говнокод я сам знаю
         Mul(Mul(Pow(L, R), Ln(L)), dR),
     
     CONST_CHECK()
-    else if (IS_NUM(right, 1)) {
+    else if (IS_NUM(right, 0)) {
         node -> type = NODE_TYPES::TYPE_NUM;
         node -> value.dbl = 1;
 
