@@ -19,7 +19,7 @@ DEF_GEN(SUB, Sub(dL, dR),
 
     convert_to_latex(node -> left, file);
     PRINT("-");
-    convert_to_latex(node -> right, file);
+    PRINT_TO_LATEX(right);
 )
 DEF_GEN(MUL, Add(Mul(dL, R), Mul(dR, L)),
 
@@ -36,8 +36,9 @@ DEF_GEN(MUL, Add(Mul(dL, R), Mul(dR, L)),
 
     calc_value(node -> left, x) * calc_value(node -> right, x),
 
-    convert_to_latex(node -> left, file);
-    convert_to_latex(node -> right, file);
+    PRINT_TO_LATEX(left);
+    PRINT("*");
+    PRINT_TO_LATEX(right);
 )
 DEF_GEN(DIV, Div(Sub(Mul(dL, R), Mul(dR, L)), Mul(R, R)), 
 
@@ -79,9 +80,9 @@ DEF_GEN(POW, // Лютейший говнокод я сам знаю
 
     pow(calc_value(node -> left, x), calc_value(node -> right, x)),
 
-    convert_to_latex(node -> left, file);
+    PRINT_TO_LATEX(left);
     PRINT("^");
-    convert_to_latex(node -> right, file);
+    PRINT_TO_LATEX(right);
 )
 DEF_GEN(LOG, Div(dR, Mul(R, Ln(L))),
 
@@ -90,8 +91,8 @@ DEF_GEN(LOG, Div(dR, Mul(R, Ln(L))),
     log(calc_value(node -> right, x)) / log(calc_value(node -> left, x)),
 
     PRINT("\\log_");
-    convert_to_latex(node -> left, file);
-    convert_to_latex(node -> right, file);
+    PRINT_TO_LATEX(left);
+    PRINT_TO_LATEX(right);
 )
 DEF_GEN(SIN, Mul(Cos(R), dR),
 
@@ -105,7 +106,7 @@ DEF_GEN(SIN, Mul(Cos(R), dR),
     sin(calc_value(node -> right, x)),
 
     PRINT("\\sin");
-    convert_to_latex(node -> right, file);
+    PRINT_IN_BRACKETS(right);
 )
 DEF_GEN(COS, Mul(Mul(create_num(-1), Sin(R)), dR),
 
@@ -119,5 +120,5 @@ DEF_GEN(COS, Mul(Mul(create_num(-1), Sin(R)), dR),
     cos(calc_value(node -> right, x)),
 
     PRINT("\\cos");
-    convert_to_latex(node -> right, file);
+    PRINT_IN_BRACKETS(right);
 )

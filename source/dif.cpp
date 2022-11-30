@@ -256,7 +256,7 @@ void create_derivative_doc(Tree *tree, int order, double point) {
 
     if (free_queue.root) tree_destructor(&free_queue);
 
-    PRINT("\\section{Где он вас касался? В точке %lg}\n", point);
+    PRINT("\\section{Касательная в точке %lg}\n", point);
     print_tangent(file, values[1], values[0], point);
     
     PRINT("\\section{Формула Тейлора, куда ж без нее}\n");
@@ -289,6 +289,17 @@ void print_function(const Node *node, FILE *file) {
 }
 
 
+#define PRINT_IN_BRACKETS(child)                               \
+fputc('(', file);                                              \
+convert_to_latex(node -> child, file);                         \
+fputc(')', file)
+
+
+#define PRINT_TO_LATEX(child)                                  \
+if (IS_TYPE(node -> child, OP)) { PRINT_IN_BRACKETS(child); }  \
+else {convert_to_latex(node -> child, file);}
+
+
 #define DEF_GEN(op, create_node, opti_node, calc_node, ...)    \
     case OP_##op:                                              \
         __VA_ARGS__;                                           \
@@ -311,7 +322,6 @@ void convert_to_latex(const Node *node, FILE *file) {
             break;
         case TYPE_VAR: PRINT("%c", node -> value.var); break;
         case TYPE_OP: 
-            fputc('(', file);
             switch (node -> value.op) {
                 #include "gen.hpp"
                 default:
@@ -320,7 +330,6 @@ void convert_to_latex(const Node *node, FILE *file) {
                     convert_to_latex(node -> right, file);
                     break;
             }
-            fputc(')', file);
         default: break;
     }
 
