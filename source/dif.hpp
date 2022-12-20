@@ -26,14 +26,17 @@ double calc_value(const Node *node, double x);
 
 /**
  * \brief Creates differentiate tutorial in .tex format
- * \brief [in] tree  Expression tree
- * \brief [in] order Differentiates to this order
- * \brief [in] point Point where calculates value
+ * \param [in] tree         Expression tree
+ * \param [in] order        Differentiates to this order
+ * \param [in] point        Point where calculates value
+ * \param [in] taylor_order Order of the taylor series
+ * \param [in] min_value    Graphic function min value
+ * \param [in] max_value    Graphic function max value
 */
-void create_derivative_doc(Tree *tree, int order, double point);
+void create_derivative_doc(Tree *tree, int order, double point, int taylor_order, double min_value, double max_value);
 
 
-// #define FUNC_GRAPH Включай только если у тебя есть matplotlib на компе
+#define FUNC_GRAPH
 
 #ifdef FUNC_GRAPH
 
@@ -42,6 +45,6 @@ void create_derivative_doc(Tree *tree, int order, double point);
  * \param [in] tree     Function to draw
  * \param [in] filename Image name
 */
-void create_func_graph(Tree *tree, const char *filname);
+void create_func_graph(Tree *tree, const char *filname, double min_value, double max_value);
 
 #endif

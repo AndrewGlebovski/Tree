@@ -201,7 +201,7 @@ void print_tangent(FILE *file, double k, double b, double point) {
 }
 
 
-void create_derivative_doc(Tree *tree, int order, double point) {
+void create_derivative_doc(Tree *tree, int order, double point, int taylor_order, double min_value, double max_value) {
     #include "phrases.hpp"
 
     FILE *file = fopen("debug/main.tex", "w");
@@ -231,23 +231,29 @@ void create_derivative_doc(Tree *tree, int order, double point) {
 
     Tree diff_tree = {tree -> root, 0}, free_queue = {};
 
-    double *values = (double *) calloc(order + 1, sizeof(double));
+    int max_order = (order > taylor_order)? order : taylor_order;
+
+    double *values = (double *) calloc(max_order + 1, sizeof(double));
 
     values[0] = calc_value(tree -> root, point);
 
-    for(int i = 1; i <= order; i++) {
-        PRINT("\\section{Взятие производной %i-го порядка}\n", i);
+    for(int i = 1; i <= max_order; i++) {
+        if (i < order) {
+            PRINT("\\section{Взятие производной %i-го порядка}\n", i);
+            PRINT("\\subsection{Дифференцирование}\n");
+        }
 
-        PRINT("\\subsection{Дифференцирование}\n");
         diff_tree.root = diff(diff_tree.root, file, diff_phrases, sizeof(diff_phrases) / sizeof(const char *));
 
         if (free_queue.root) tree_destructor(&free_queue);
+        
+        if (i < order) {
+            PRINT("\\subsection{Оптимизация}\n");
+            optimize(diff_tree.root, file, opti_phrases, sizeof(opti_phrases) / sizeof(const char *));
 
-        PRINT("\\subsection{Оптимизация}\n");
-        optimize(diff_tree.root, file, opti_phrases, sizeof(opti_phrases) / sizeof(const char *));
-
-        PRINT("\\subsection{Производная %i-го порядка}\n", i);
-        print_function(diff_tree.root, file);
+            PRINT("\\subsection{Производная %i-го порядка}\n", i);
+            print_function(diff_tree.root, file);
+        }
 
         values[i] = calc_value(diff_tree.root, point);
 
@@ -260,10 +266,10 @@ void create_derivative_doc(Tree *tree, int order, double point) {
     print_tangent(file, values[1], values[0], point);
     
     PRINT("\\section{Формула Тейлора, куда ж без нее}\n");
-    print_taylor(file, order, values, point);
+    print_taylor(file, taylor_order, values, point);
     
 #ifdef FUNC_GRAPH
-    create_func_graph(tree, "plot");
+    create_func_graph(tree, "plot", min_value, max_value);
 
     PRINT("\\section{Прекраснейший график}\n");
     PRINT("\\begin{center}\n");
@@ -341,13 +347,13 @@ void convert_to_latex(const Node *node, FILE *file) {
 
 #ifdef FUNC_GRAPH
 
-void create_func_graph(Tree *tree, const char *filename) {
-    char *cmd = (char *) calloc(1024, sizeof(char));
+void create_func_graph(Tree *tree, const char *filename, double min_value, double max_value) {
+    char *cmd = (char *) calloc(2048, sizeof(char));
     int offset = 0;
 
-    sprintf(cmd, "python source/plot.py %s %lg %n", filename, 0.2, &offset);
+    sprintf(cmd, "python source/plot.py %s %lg %lg %lg %n", filename, 0.02, min_value, max_value, &offset);
 
-    for (double i = -10; i < 9.9; i += 0.2) {
+    for (double i = min_value + 0.01; i < max_value; i += 0.02) {
         int n = 0;
         sprintf(cmd + offset, "%.3lg %n", calc_value(tree -> root, i), &n);
         offset += n;

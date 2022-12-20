@@ -37,16 +37,10 @@ void clear_spaces(char *buffer);
 
 
 
-int read_tree(Tree *tree) {
-    char *buffer = (char *) calloc(512, sizeof(char));
-
-    fgets(buffer, 512, stdin);
-
+int read_tree(Tree *tree, char *buffer) {
     clear_spaces(buffer);
 
     tree -> root = getG(buffer);
-
-    free(buffer);
 
     return 0;
 }
@@ -65,11 +59,7 @@ void clear_spaces(char *buffer) {
 
 
 int write_tree(Tree *tree, const char *filepath) {
-    // ADD ASSERT HERE
-
     FILE *output = fopen(filepath, "w");
-
-    // ADD ASSERT HERE
 
     write_node(tree -> root, output, 0);
 
